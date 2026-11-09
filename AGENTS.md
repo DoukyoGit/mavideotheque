@@ -75,12 +75,25 @@ node scripts/validate.mjs
 Le script valide la syntaxe des scripts inline, le JSON, les dates/notes, le nombre de fiches et la concordance index/fichiers. GitHub Actions exécute ce contrôle sur les pushs et pull requests.
 
 ## Procédure de modification
-1. Relire les versions actuelles sur `main` et récupérer les SHA.
-2. Rechercher les usages avant de renommer ou supprimer un champ.
-3. Faire des changements ciblés et préserver les données personnelles.
-4. Valider JavaScript, JSON, chemins, cohérence index/fiches et absence de secrets.
-5. Relire les modifications et vérifier robots/CSP.
-6. Après commit, relire les fichiers sur `main` et confirmer le résultat.
+
+1. Identifier les fichiers réellement concernés par la demande.
+2. Relire leur dernière version sur `main` et récupérer leur SHA avant modification.
+3. Ne pas charger systématiquement les fichiers de données (`data/films/`, `data/sagas/`).
+4. Consulter les données uniquement lorsqu'une modification touche leur structure, leur contenu ou leur traitement.
+5. Avant de supprimer ou renommer une fonction, variable, propriété ou sélecteur, rechercher ses usages dans le code source.
+6. Pour les modifications de données, préserver les données personnelles et synchroniser les fichiers concernés avec l'index.
+7. Faire des changements ciblés, sans réécrire les fichiers ou données non concernés.
+8. Lancer `node scripts/validate.mjs` lorsque la modification le justifie. Ce script contrôle lui-même l'ensemble des données : il n'est pas nécessaire de les charger dans le contexte de l'agent.
+9. Après modification, vérifier le diff, les fichiers concernés et les éventuelles régressions liées au changement.
+10. Après commit, vérifier le commit et les fichiers modifiés, sans relire l'intégralité du dépôt.
+
+## Règles de consultation des données
+
+- `data/index.json` : à consulter lorsque la modification concerne la liste des films, la recherche, les tris, les filtres, les statistiques ou les opérations de synchronisation.
+- `data/films/` : consulter uniquement les fiches nécessaires lorsqu'on travaille sur les données détaillées d'un film.
+- `data/sagas/` : consulter uniquement les sagas concernées.
+- Ne jamais relire toutes les fiches JSON par défaut.
+- Pour vérifier l'intégrité globale des données, privilégier `scripts/validate.mjs` plutôt que leur chargement dans le contexte de l'agent.
 
 ## Checklist de régression
 - Index, recherche, tri, filtres et pagination.
