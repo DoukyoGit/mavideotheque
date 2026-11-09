@@ -12,6 +12,20 @@ Guide de maintenance destiné aux développeurs et assistants IA. Le dépôt et 
 - `ajouter-film.html` redirige vers `tools.html`.
 - `data/index.json` contient le résumé complet ; `data/films/t<ID>.json` contient les fiches détaillées.
 
+## Architecture statique — règle impérative
+
+Le projet doit rester entièrement statique : GitHub Pages, fichiers HTML/CSS/JavaScript/JSON et traitements exécutés dans le navigateur, à la suite d'une action explicite de l'utilisateur.
+
+Interdictions absolues, sauf autorisation explicite préalable de l'utilisateur :
+- Aucun cron ni tâche planifiée ou périodique.
+- Aucun workflow GitHub Actions, quelle que soit sa fonction (validation, déploiement, maintenance, etc.).
+- Aucun service worker.
+- Aucun script serveur, backend, fonction cloud ou service exécuté côté serveur.
+- Aucune automatisation externe, webhook ou mécanisme déclenché automatiquement.
+- Aucune boucle ou tâche de traitement autonome en arrière-plan.
+
+Les traitements éventuellement longs doivent être lancés explicitement par l'utilisateur depuis l'interface et rester liés à son utilisation du navigateur. Ne jamais ajouter un mécanisme qui continue de travailler de façon autonome ou se déclenche ultérieurement/en l'absence de l'utilisateur. Les délais courts nécessaires à l'interface ne doivent pas servir à créer une planification ou une automatisation.
+
 ## Fonctionnement
 
 ### Application
