@@ -72,7 +72,7 @@ Lancer avec Node.js 22 ou supérieur :
 ```sh
 node scripts/validate.mjs
 ```
-Le script valide la syntaxe des scripts inline, le JSON, les dates/notes, le nombre de fiches et la concordance index/fichiers. GitHub Actions exécute ce contrôle sur les pushs et pull requests.
+Le script valide manuellement la syntaxe des scripts inline, le JSON, les dates/notes, le nombre de fiches et la concordance index/fichiers. Il peut être lancé à la demande avec la commande ci-dessus.
 
 ## Procédure de modification
 
