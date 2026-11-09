@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https://image.tmdb.org; connect-src 'self' https://api.themoviedb.org https://api.github.com https://raw.githubusercontent.com ws:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; base-uri 'self'; object-src 'none'; form-action 'self'">
+<meta name="googlebot" content="noindex,nofollow,noarchive,nosnippet">
+<title>Outils — Ma vidéothèque</title>
+<style>
+:root{--bg:#f3f0ea;--panel:#fff;--ink:#1d1b18;--mute:#6b665e;--line:#ddd7cc;--acc:#b3261e;--accink:#fff;--warn:#a85a00;--bad:#b3261e;--good:#18794e;--shadow:0 8px 24px rgba(0,0,0,.14)}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1115;--panel:#181b21;--ink:#ece8e1;--mute:#9a958b;--line:#2a2e36;--acc:#e5534b;--accink:#180a09;--warn:#f0b35c;--bad:#ff8a80;--good:#66c995;--shadow:0 8px 24px rgba(0,0,0,.5)}}
+*{box-sizing:border-box}h1 a{color:inherit;text-decoration:none}h1 a:hover{text-decoration:underline;text-underline-offset:4px}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}main{max-width:900px;margin:0 auto;padding:28px 18px 60px}h1{font:600 1.5rem/1.1 Georgia,"Times New Roman",serif;margin:0 0 4px;letter-spacing:-.01em}h2{font:600 1.15rem/1.25 Georgia,"Times New Roman",serif;margin:0 0 10px}p{margin:0 0 10px}.mute{color:var(--mute);font-size:.9rem}section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin-top:16px}label{display:block;font-weight:600;margin:10px 0 4px}input{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font:inherit}input[type=password]{max-width:600px}input[type=number]{max-width:130px}input[type=date]{max-width:220px}button{font:inherit;padding:9px 16px;border-radius:8px;border:1px solid var(--acc);background:var(--acc);color:var(--accink);cursor:pointer;font-weight:600}button.alt{background:transparent;color:var(--acc)}button:disabled{opacity:.45;cursor:default}button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset:2px}.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.status{padding:9px 11px;border-radius:6px;background:var(--bg);margin-top:10px;white-space:pre-wrap}.bad{color:var(--bad)}.warn{color:var(--warn)}.good{color:var(--good)}.results{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:10px;margin-top:12px}.movie{display:flex;gap:10px;border:1px solid var(--line);border-radius:8px;padding:10px;min-width:0}.movie img{width:74px;height:111px;object-fit:cover;border-radius:4px;background:var(--bg);flex:none}.movie .info{min-width:0}.movie b{display:block}.movie button{margin-top:8px;padding:6px 10px}.selected{display:flex;gap:14px;align-items:flex-start}.selected img{width:100px;max-height:150px;object-fit:cover;border-radius:5px}.pill{display:inline-block;border:1px solid var(--line);border-radius:30px;padding:2px 8px;font-size:.82rem;color:var(--mute)}.queue-item{display:flex;justify-content:space-between;gap:10px;align-items:center;border-top:1px solid var(--line);padding:10px 0}.queue-item:first-child{border-top:0}.queue-item button{padding:4px 9px}.hide{display:none}.workflow-choice{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;text-align:left;gap:7px;min-height:112px}.workflow-choice strong{font-size:1rem}.workflow-choice span{font-weight:400;font-size:.9rem;line-height:1.4}.workflow-options{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}a{color:var(--acc)}.comparison-list{display:grid;gap:7px;margin:10px 0 18px}.comparison-item{border:1px solid var(--line);border-radius:7px;padding:9px 11px}.comparison-item b{display:block}.comparison-item .mute{display:block}.comparison-item.uncertain{border-style:dashed}
+.quick-edit{width:min(460px,calc(100% - 28px));max-width:460px;border:1px solid var(--line);border-radius:14px;padding:22px;background:var(--panel);color:var(--ink);box-shadow:var(--shadow)}.quick-edit::backdrop{background:rgba(0,0,0,.62)}.quick-edit h2{margin:0 0 5px}.quick-edit .quick-title{font-weight:650;margin:0 0 16px}.quick-edit input[type=number]{max-width:150px}.quick-edit input[type=date]{max-width:none}.quick-date-row{display:flex;align-items:end;gap:8px}.quick-date-row>div{flex:1;min-width:0}.quick-date-row button{white-space:nowrap;padding:9px 11px}.quick-edit .row{justify-content:flex-end}.quick-edit-status{min-height:1.5em;margin-top:12px}
+</style>
+</head>
+<body>
+<main>
+<h1><a href="./" aria-label="Retour à Ma vidéothèque">Ma vidéothèque</a></h1>
+<p class="mute">Choisis entre la gestion de ta vidéothèque et l’export CSV vers Trakt ou Letterboxd.</p>
+<p class="status warn">Cette page et son code sont publics. Les jetons restent en mémoire par défaut. Si tu actives leur mémorisation, ils sont stockés localement sans chiffrement et restent accessibles aux scripts exécutés sur ce site. Le jeton GitHub permet de modifier ton dépôt : limite ses droits à ce seul dépôt, avec une expiration courte, et utilise uniquement un appareil de confiance. Tu peux supprimer les jetons sauvegardés à tout moment.</p>
+<section id="workflowChooser">
+<h2>Que souhaites-tu faire ?</h2>
+<div class="results workflow-options">
+<button id="workflowManual" class="workflow-choice" type="button" aria-pressed="false"><strong>Ajout / mise à jour manuelle</strong><span>Rechercher des films sur TMDB, compléter les notes et dates, puis enregistrer les changements.</span></button>
+<button id="workflowExport" class="workflow-choice alt" type="button" aria-pressed="false"><strong>Export Trakt / Letterboxd</strong><span>Créer un fichier CSV à importer manuellement, en choisissant combien de films exporter.</span></button>
+<button id="workflowKodi" class="workflow-choice alt" type="button" aria-pressed="false"><strong>Comparer avec Kodi</strong><span>Comparer les statuts de visionnage de Kodi avec ceux de ta vidéothèque, sans rien modifier.</span></button>
+<button id="workflowSagas" class="workflow-choice alt" type="button" aria-pressed="false"><strong>Gestion du cache de données</strong><span>Actualiser les informations TMDB manquantes des films et gérer les données des sagas.</span></button>
+<button id="workflowTokens" class="workflow-choice alt" type="button" aria-pressed="false"><strong>Gestion des jetons</strong><span>Renseigner, enregistrer ou effacer les jetons TMDB et GitHub, sans passer par un formulaire de film.</span></button>
+</div><p class="mute" id="workflowHint">Sélectionne un parcours pour afficher uniquement les outils correspondants.</p></section>
+<div id="tokenWorkflow" class="hide">
+<section id="githubCredentials">
+<h2>Accès GitHub</h2>
+<label for="githubToken">Jeton d’accès personnel GitHub (fine-grained)</label>
+<p class="mute"><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">Créer un jeton GitHub</a>. Sélectionne uniquement le dépôt <b>DoukyoGit/mavideotheque</b>, puis accorde la permission <b>Contents : Read and write</b> (les métadonnées sont accordées automatiquement).</p>
+<input id="githubToken" type="password" autocomplete="off" spellcheck="false" placeholder="Colle ici ton jeton GitHub (github_pat_…)">
+<label style="font-weight:400"><input id="rememberGithubToken" type="checkbox" style="width:auto;margin-right:7px">Mémoriser le jeton GitHub sur cet appareil</label>
+<div class="row"><span id="githubTokenState" class="mute"></span><button class="alt" id="clearGithubToken" type="button">Effacer le jeton GitHub</button><button class="alt" id="deleteSavedGithubToken" type="button">Supprimer le jeton sauvegardé</button></div>
+</section>
+<section>
+<h2>1. Jeton TMDB</h2>
+<label for="token">Jeton « Read Access Token » TMDB</label>
+<p class="mute"><a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener noreferrer">Ouvrir les paramètres API de TMDB pour récupérer ton jeton</a></p>
+<input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="Colle ici ton Read Access Token TMDB">
+<label style="font-weight:400"><input id="rememberTmdbToken" type="checkbox" style="width:auto;margin-right:7px">Mémoriser le jeton TMDB sur cet appareil</label>
+<div class="row"><span id="tokenState" class="mute"></span><button class="alt" id="clearToken" type="button">Effacer le jeton TMDB</button></div>
+</section>
+</div>
+<div id="manualWorkflow" class="hide">
+
+<section>
+<h2>2. Opération</h2>
+<div class="row">
+  <button id="modeAdd" type="button">Ajouter un film</button>
+  <button id="modeEdit" class="alt" type="button">Modifier un film existant</button>
+</div>
+<p id="modeHelp" class="mute">Ajoute un nouveau film à ta vidéothèque.</p>
+</section>
+
+<section id="localSection" class="hide">
+<h2>3. Retrouver le film à modifier</h2>
+<label for="localQuery">Titre actuel du film</label>
+<input id="localQuery" type="search" placeholder="Ex. : Hamilton" autocomplete="off">
+<div class="row"><button id="localSearch" type="button">Rechercher dans ma vidéothèque</button></div>
+<div id="localStatus" class="mute" role="status"></div>
+<div id="localResults" class="results"></div>
+</section>
+<section id="tmdbSection">
+<h2>5. Rechercher le bon film sur TMDB</h2>
+<label for="query">Titre du film</label>
+<input id="query" type="text" placeholder="Ex. : The Raid" autocomplete="off">
+<div class="row" style="align-items:end">
+  <div><label for="year">Année (facultative)</label><input id="year" type="number" min="1888" max="2100" placeholder="2011"></div>
+  <button id="search" type="button">Rechercher sur TMDB</button>
+</div>
+<div id="searchStatus" class="mute" role="status"></div>
+<div id="results" class="results"></div>
+</section>
+<section id="selection" class="hide">
+<h2>6. Vérifier les informations</h2>
+<div id="selectedMovie" class="selected"></div>
+<div class="row">
+  <div><label for="rating">Note SensCritique / 10</label><input id="rating" type="number" min="0" max="10" step="1" value="5"></div>
+  <div><label for="watched">Date de visionnage</label><input id="watched" type="date" required></div>
+</div>
+<div class="row"><button id="add" type="button">Ajouter à la sélection</button><button id="cancel" class="alt" type="button">Annuler</button></div>
+<div id="detailStatus" class="mute" role="status"></div>
+</section>
+<section>
+<h2>7. Films sélectionnés <span id="count" class="pill">0</span></h2>
+<div id="queue" class="mute">Aucun film ajouté pour le moment.</div>
+<div class="row"><button id="publish" type="button" disabled>Enregistrer directement sur GitHub</button><button id="export" class="alt" type="button" disabled>Générer un ZIP</button><button id="clearQueue" class="alt" type="button" disabled>Vider la sélection</button></div>
+<div id="exportStatus" class="status hide" role="status"></div>
+</section>
+</div>
+<div id="sagaWorkflow" class="hide">
+<section id="movieRefreshSection">
+<h2>3. Actualiser les données des films</h2>
+<p class="mute">Repère les fiches dont les données complémentaires sont incomplètes. Les fiches sont d’abord lues depuis GitHub sans solliciter TMDB. Seuls les films incomplets sont actualisés, un par un, avec une pause d’une seconde entre les requêtes. Les modifications sont enregistrées par lots de 50 films pour faciliter la reprise.</p>
+<div class="row"><button id="refreshMovieData" type="button">Actualiser les données des films</button></div>
+<div id="movieDataBulkStatus" class="status hide" role="status"></div>
+</section>
+<section id="sagaRefreshSection">
+<h2>4. Initialiser les sagas de mes films vus</h2>
+<p class="mute">Analyse les fiches des films vus pour repérer leurs collections, puis actualise uniquement les sagas absentes ou dont les données datent de plus de 30 jours. Les films sont regroupés par saga : une seule requête TMDB par collection, exécutée séquentiellement avec 700 ms entre deux requêtes. Les fiches de films sont lues depuis le dépôt, sans appel TMDB.</p>
+<div class="row"><button id="refreshAllSagas" type="button">Initialiser / actualiser toutes les sagas</button></div>
+<div id="sagaBulkStatus" class="status hide" role="status"></div>
+</section>
+</div>
+<div id="exportWorkflow" class="hide">
+<section>
+<h2>Export vers Trakt et Letterboxd</h2>
+<p class="mute">Les films sont classés du plus récent au plus ancien selon leur date de visionnage. Aucun compte ni jeton n’est nécessaire : les fichiers sont générés dans ton navigateur.</p>
+<label for="exportLimit">Nombre de films à exporter</label>
+<input id="exportLimit" type="number" min="1" max="5000" step="1" value="50">
+<p id="exportAvailable" class="mute">Lecture de ta vidéothèque…</p>
+<div class="row">
+<button id="exportTraktCsv" type="button" disabled>Exporter pour Trakt (.csv)</button>
+<button id="exportLetterboxdCsv" class="alt" type="button" disabled>Exporter pour Letterboxd (.csv)</button>
+</div>
+<div id="externalExportStatus" class="status hide" role="status"></div>
+<p class="mute">Après téléchargement, importe le fichier depuis <a href="https://trakt.tv/import" target="_blank" rel="noopener noreferrer">Trakt – Import</a> ou <a href="https://letterboxd.com/import/" target="_blank" rel="noopener noreferrer">Letterboxd – Import</a>. Les fichiers contiennent les dates de visionnage et les notes disponibles. Un seul dernier visionnage par film est exporté, conformément aux données conservées dans ta vidéothèque.</p>
+</section>
+</div>
+<div id="kodiWorkflow" class="hide"><section><h2>Comparer avec Kodi</h2><p class="mute">Connexion directe à Kodi sur ton réseau local. Comparaison strictement en lecture seule : aucun statut ne sera modifié.</p><label for="kodiHost">Adresse IP de Kodi</label><input id="kodiHost" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="Ex. : 192.168.1.50"><div class="row" style="align-items:end"><div><label for="kodiPort">Port WebSocket</label><input id="kodiPort" type="number" min="1" max="65535" value="9090"></div><button id="kodiTest" type="button">Tester la connexion</button></div><p class="mute">L’adresse IP est mémorisée uniquement dans le navigateur. Port WebSocket par défaut : 9090. Le port HTTP 8080 n’est pas utilisé.</p><div id="kodiConnectionStatus" class="status hide" role="status"></div><div class="row"><button id="kodiCompare" type="button">Comparer les bibliothèques</button></div><div id="kodiCompareStatus" class="status hide" role="status"></div><div id="kodiSummary" class="hide"></div><div id="kodiResults" class="hide"><h3>Vus dans l’application, non vus dans Kodi</h3><div id="kodiAppOnly" class="comparison-list"></div><h3>Vus dans Kodi, non marqués vus dans l’application</h3><div id="kodiKodiOnly" class="comparison-list"></div><h3>Films Kodi non identifiés (sans identifiant TMDB)</h3><div id="kodiUnidentified" class="comparison-list"></div><h3>Vus dans l’application, absents de Kodi</h3><div id="kodiMissing" class="comparison-list"></div></div></section><section><h2>Configuration nécessaire dans Kodi</h2><ol><li>Dans <b>Paramètres → Services → Contrôle</b>, active « Autoriser le contrôle à distance par des applications sur d’autres systèmes ».</li><li>Conserve le port TCP par défaut <b>9090</b>, sauf modification personnelle.</li><li>Vérifie que ton téléphone et Kodi sont sur le même réseau local.</li></ol><p class="status warn">Attention : l’interface de contrôle sur le port 9090 ne possède pas d’authentification. Ne l’expose jamais sur Internet et réserve-la à un réseau local de confiance. Chrome peut demander une autorisation d’accès au réseau local.</p></section></div><p class="mute" style="margin-top:18px">Ce produit utilise l'API TMDB mais n'est ni approuvé ni certifié par TMDB.</p>
+<dialog id="quickEditDialog" class="quick-edit" aria-labelledby="quickEditHeading">
+<h2 id="quickEditHeading">Modifier le visionnage</h2>
+<p id="quickEditTitle" class="quick-title"></p>
+<label for="quickRating">Ma note / 10</label>
+<input id="quickRating" type="number" min="0" max="10" step="1" placeholder="Sans note">
+<div class="quick-date-row">
+<div><label for="quickWatched">Date de visionnage</label><input id="quickWatched" type="date" required></div>
+<button id="quickToday" class="alt" type="button">Aujourd’hui</button>
+</div>
+<p id="quickEditStatus" class="quick-edit-status mute" role="status"></p>
+<div class="row"><button id="quickSave" type="button">Enregistrer</button><button id="quickClose" class="alt" type="button">Fermer</button></div>
+</dialog>
+</main>
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+const PUBLISHED='https://doukyogit.github.io/mavideotheque/';
+const APPEND='credits,alternative_titles,external_ids,keywords,release_dates,translations,videos,images,recommendations,similar,watch/providers,reviews';
+const TMDB_STORAGE_KEY='mavideotheque_tmdb_token',GITHUB_STORAGE_KEY='mavideotheque_github_token';
+
+let KEY='',GITHUB_KEY='',selected=null,queue=[],busy=false,mode='add',editTarget=null,localIndex=null,localDetails=new Map();
+const GH_API='https://api.github.com/repos/DoukyoGit/mavideotheque',GH_BRANCH='main';
+const norm=s=>(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+const keyOf=f=>norm(f.title)+'|'+(f.year||'');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function setStatus(el,msg,cls=''){el.textContent=msg;el.className=cls||'mute'}
+function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function storageGet(k){try{return localStorage.getItem(k)||''}catch(e){return ''}}
+function storageSet(k,v){try{if(v)localStorage.setItem(k,v);else localStorage.removeItem(k);return true}catch(e){return false}}
+function saveToken(v){KEY=v;const remember=$('#rememberTmdbToken').checked,saved=remember?storageSet(TMDB_STORAGE_KEY,v):(storageSet(TMDB_STORAGE_KEY,''),true);$('#tokenState').textContent=v?(remember?(saved?'Jeton TMDB sauvegardé sur cet appareil.':'Sauvegarde locale impossible ; jeton conservé en mémoire.'):'Jeton TMDB conservé uniquement en mémoire.'):'Aucun jeton TMDB chargé.'}
+function saveGithubToken(v){GITHUB_KEY=v;const remember=$('#rememberGithubToken').checked;const saved=remember?storageSet(GITHUB_STORAGE_KEY,v):true;if(!remember)storageSet(GITHUB_STORAGE_KEY,'');$('#githubTokenState').textContent=v?(remember?(saved?'Jeton GitHub sauvegardé sur cet appareil.':'Sauvegarde locale impossible ; jeton conservé en mémoire.'):'Jeton GitHub conservé uniquement en mémoire.'):'Aucun jeton GitHub chargé.'}
+function restoreTokens(){const tmdb=storageGet(TMDB_STORAGE_KEY);if(tmdb){$('#token').value=tmdb;$('#rememberTmdbToken').checked=true;KEY=tmdb;$('#tokenState').textContent='Jeton TMDB restauré depuis cet appareil.'}else $('#tokenState').textContent='Aucun jeton TMDB sauvegardé. Le jeton sera conservé en mémoire par défaut.';const github=storageGet(GITHUB_STORAGE_KEY);if(github){$('#githubToken').value=github;$('#rememberGithubToken').checked=true;GITHUB_KEY=github;$('#githubTokenState').textContent='Jeton GitHub restauré depuis cet appareil.'}else $('#githubTokenState').textContent='Aucun jeton GitHub sauvegardé.'}
+async function ghRequest(path,options={}){const r=await fetch(GH_API+path,{...options,headers:{Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28',Authorization:'Bearer '+GITHUB_KEY,...(options.headers||{})}});let data={};try{data=await r.json()}catch{}if(!r.ok)throw new Error(data.message||('Erreur GitHub '+r.status)+(r.status===403?' — vérifie les permissions Contents: Read and write du jeton.':''));return data}
+
+let quickEditId=null,quickEditRecord=null,quickEditIndex=null,quickEditBusy=false;
+async function openQuickEdit(id){
+ quickEditId=id;quickEditRecord=null;quickEditIndex=null;
+ const dlg=$('#quickEditDialog'),status=$('#quickEditStatus');
+ $('#quickEditTitle').textContent='Chargement de la fiche…';$('#quickRating').value='';$('#quickWatched').value=today();$('#quickSave').disabled=true;status.textContent='Lecture des données sur GitHub…';status.className='quick-edit-status mute';dlg.showModal();
+ try{
+  const [fr,ir]=await Promise.all([ghRequest('/contents/data/films/'+encodeURIComponent(id)+'.json?ref='+GH_BRANCH),ghRequest('/contents/data/index.json?ref='+GH_BRANCH)]);
+  const record=JSON.parse(decodeBase64Utf8(fr.content)),index=JSON.parse(decodeBase64Utf8(ir.content));
+  if(record.id!==id||!record.csv)throw new Error('La fiche ne contient pas les données personnelles attendues.');
+  const entry=(index.films||[]).find(x=>x.id===id);if(!entry)throw new Error('Film introuvable dans data/index.json.');
+  quickEditRecord=record;quickEditIndex=index;
+  $('#quickEditTitle').textContent=record.tmdb?.title||record.csv.title||entry.t||id;
+  $('#quickRating').value=record.csv.rating??entry.r??'';
+  $('#quickWatched').value=record.csv.watchedDate||entry.w||today();
+  status.textContent='Modifie uniquement ta note et ta date de visionnage.';$('#quickSave').disabled=false;
+ }catch(e){status.textContent='Impossible de charger le film : '+(e.message||e);status.className='quick-edit-status bad';$('#quickSave').disabled=true}
+}
+async function saveQuickEdit(){
+ if(quickEditBusy||!quickEditRecord||!quickEditIndex)return;
+ const rawRating=$('#quickRating').value,rawDate=$('#quickWatched').value;
+ const rating=rawRating===''?null:Number(rawRating);
+ if(rating!==null&&(!Number.isFinite(rating)||rating<0||rating>10||!Number.isInteger(rating))){$('#quickEditStatus').textContent='La note doit être un nombre entier entre 0 et 10.';$('#quickEditStatus').className='quick-edit-status bad';return}
+ if(!rawDate){$('#quickEditStatus').textContent='Indique une date de visionnage.';$('#quickEditStatus').className='quick-edit-status bad';return}
+ quickEditBusy=true;$('#quickSave').disabled=true;$('#quickClose').disabled=true;$('#quickEditStatus').textContent='Enregistrement sur GitHub…';$('#quickEditStatus').className='quick-edit-status mute';
+ try{
+  const id=quickEditId,record={...quickEditRecord,csv:{...quickEditRecord.csv,rating,watchedDate:rawDate}};
+  const content=JSON.stringify(record),index={...quickEditIndex,generatedAt:new Date().toISOString(),films:quickEditIndex.films.map(f=>f.id===id?{...f,r:rating,w:rawDate,h:h53(content)}:f)};
+  const commit=await commitFilesToGitHub([{name:'data/films/'+id+'.json',content},{name:'data/index.json',content:JSON.stringify(index)}],'Mise à jour de la vidéothèque');
+  $('#quickEditStatus').textContent='Modifications enregistrées sur GitHub ('+commit.sha.slice(0,7)+').';$('#quickEditStatus').className='quick-edit-status good';
+  $('#quickSave').textContent='Enregistré';$('#quickSave').disabled=true;
+ }catch(e){let msg=e.message||'Erreur inconnue.';if(/Bad credentials/i.test(msg))msg='Jeton GitHub invalide ou expiré.';else if(/Resource not accessible by personal access token/i.test(msg))msg='Le jeton GitHub doit avoir la permission Contents : Read and write.';$('#quickEditStatus').textContent='Échec de l’enregistrement : '+msg;$('#quickEditStatus').className='quick-edit-status bad';$('#quickSave').disabled=false}
+ finally{quickEditBusy=false;$('#quickClose').disabled=false}
+}
+async function commitFilesToGitHub(files,message){
+ const ref=await ghRequest('/git/ref/heads/'+GH_BRANCH),parentSha=ref.object.sha,parent=await ghRequest('/git/commits/'+parentSha);
+ const blobs=new Array(files.length);let cursor=0;const upload=async()=>{while(cursor<files.length){const i=cursor++,file=files[i],b=await ghRequest('/git/blobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:file.content,encoding:'utf-8'})});blobs[i]={path:file.name,mode:'100644',type:'blob',sha:b.sha}}};await Promise.all(Array.from({length:Math.min(6,files.length)},upload));
+ const tree=await ghRequest('/git/trees',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({base_tree:parent.tree.sha,tree:blobs})});
+ const commit=await ghRequest('/git/commits',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message,tree:tree.sha,parents:[parentSha]})});
+ await ghRequest('/git/refs/heads/'+GH_BRANCH,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({sha:commit.sha,force:false})});
+ return commit;
+}
+const RAW_REPO='https://raw.githubusercontent.com/Doukyogit/mavideotheque/main/';
+const SAGA_REFRESH_COOLDOWN=30*24*60*60*1000;
+const SAGA_REQUEST_GAP=700;
+const waitMs=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function fetchFilmCollectionFromRepo(film){
+ const url=RAW_REPO+'data/films/'+encodeURIComponent(film.id)+'.json';
+ const r=await fetch(url,{cache:'no-cache'});
+ if(!r.ok)throw new Error('Impossible de lire la fiche '+film.id+' depuis le dépôt (HTTP '+r.status+').');
+ const detail=await r.json(),collection=detail.tmdb&&detail.tmdb.collection;
+ return collection&&collection.id?{id:String(collection.id),name:collection.name||null}:null;
+}
+async function isSagaFresh(id){
+ const r=await fetch(RAW_REPO+'data/sagas/'+encodeURIComponent(id)+'.json',{cache:'no-cache'});
+ if(!r.ok)return false;
+ try{const data=await r.json(),time=Date.parse(data.fetchedAt||'');return Number.isFinite(time)&&Date.now()-time<SAGA_REFRESH_COOLDOWN}catch(_){return false}
+}
+async function refreshAllSagas(){
+ const button=$('#refreshAllSagas'),box=$('#sagaBulkStatus');box.classList.remove('hide');
+ if(button.disabled)return;
+ button.disabled=true;
+ try{
+  validateToken();
+  GITHUB_KEY=$('#githubToken').value.trim();saveGithubToken(GITHUB_KEY);
+  if(!GITHUB_KEY)throw new Error('Renseigne ton jeton GitHub dans la section Accès GitHub.');
+  const indexResponse=await fetch(RAW_REPO+'data/index.json?ts='+Date.now(),{cache:'no-store'});
+  if(!indexResponse.ok)throw new Error('Impossible de lire data/index.json (HTTP '+indexResponse.status+').');
+  const index=await indexResponse.json();
+  if(!Array.isArray(index.films))throw new Error('Format inattendu pour data/index.json.');
+  const watched=index.films.filter(f=>f.w),toDiscover=watched.filter(f=>!Object.prototype.hasOwnProperty.call(f,'c'));
+  let discovered=0;
+  if(toDiscover.length){
+   let cursor=0,failure=null;
+   setStatus(box,'Analyse des fiches de films vus : 0 / '+toDiscover.length+'…');
+   const worker=async()=>{
+    while(!failure){
+     const pos=cursor++;if(pos>=toDiscover.length)return;
+     const film=toDiscover[pos];
+     try{
+      const collection=await fetchFilmCollectionFromRepo(film);
+      film.c=collection?collection.id:null;film.cn=collection?collection.name:null;discovered++;
+      if(discovered%20===0||discovered===toDiscover.length)setStatus(box,'Analyse des fiches de films vus : '+discovered+' / '+toDiscover.length+'…');
+     }catch(e){failure=e;return}
+    }
+   };
+   await Promise.all(Array.from({length:8},worker));
+   if(failure)throw failure;
+  }
+  const collections=new Map();
+  for(const film of watched)if(film.c!=null&&String(film.c).trim())collections.set(String(film.c),film.cn||collections.get(String(film.c))||'');
+  const all=[...collections.entries()].sort((a,b)=>a[0].localeCompare(b[0],undefined,{numeric:true}));
+  if(!all.length){
+   if(discovered){
+    const updated={...index,generatedAt:new Date().toISOString(),films:index.films};
+    const commit=await commitFilesToGitHub([{name:'data/index.json',content:JSON.stringify(updated)}],'Indexation des sagas des films vus');
+    setStatus(box,'Analyse terminée : aucun film vu n’appartient à une saga. Index mis à jour. Commit '+commit.sha.slice(0,7)+'.','good');
+   }else setStatus(box,'Aucune saga TMDB associée aux films vus.','warn');
+   return;
+  }
+  setStatus(box,'Collections détectées : '+all.length+'. Vérification des données existantes…');
+  const freshness=await Promise.all(all.map(async ([id])=>({id,fresh:await isSagaFresh(id)})));
+  const todo=all.filter(([id])=>!freshness.find(x=>x.id===id)?.fresh);
+  const skipped=all.length-todo.length;
+  if(!todo.length&&!discovered){
+   setStatus(box,'Tout est déjà à jour : '+all.length+' saga(s) vérifiée(s), aucune requête TMDB nécessaire.','good');
+   return;
+  }
+  if(todo.length&&!confirm(todo.length+' saga(s) vont être actualisée(s), une par une, avec 700 ms entre les appels. '+skipped+' saga(s) récentes seront ignorées. Continuer ?'))return;
+  const sagaFiles=[];
+  for(let i=0;i<todo.length;i++){
+   const [id,name]=todo[i];
+   setStatus(box,'TMDB : '+(i+1)+' / '+todo.length+' — '+(name||('Saga '+id))+'…'+(skipped?' ('+skipped+' déjà récentes ignorées)':''));
+   let saga;
+   try{saga=await api('/collection/'+id,{language:'fr-FR'})}
+   catch(e){
+    if(String(e.message).includes('Limite de requêtes TMDB')){
+     setStatus(box,'TMDB demande une pause. Attente de 10 secondes avant une seule nouvelle tentative pour cette saga…','warn');
+     await waitMs(10000);saga=await api('/collection/'+id,{language:'fr-FR'});
+    }else throw e;
+   }
+   if(!saga||!saga.id||!Array.isArray(saga.parts))throw new Error('TMDB n’a pas renvoyé une collection valide pour l’ID '+id+'.');
+   sagaFiles.push({name:'data/sagas/'+id+'.json',content:JSON.stringify({...saga,fetchedAt:new Date().toISOString()})});
+   if(i<todo.length-1)await waitMs(SAGA_REQUEST_GAP);
+  }
+  const files=[];
+  if(discovered)files.push({name:'data/index.json',content:JSON.stringify({...index,generatedAt:new Date().toISOString(),films:index.films})});
+  files.push(...sagaFiles);
+  if(files.length){
+   setStatus(box,'Enregistrement de '+sagaFiles.length+' saga(s)'+(discovered?' et de l’index des films':'')+' sur GitHub…');
+   const commit=await commitFilesToGitHub(files,'Actualisation des sagas des films vus ('+sagaFiles.length+')');
+   setStatus(box,'Terminé : '+all.length+' saga(s) associées aux films vus, '+sagaFiles.length+' actualisée(s), '+skipped+' déjà récentes.'+(discovered?' '+discovered+' fiches de films indexées.':'')+' Commit '+commit.sha.slice(0,7)+'.','good');
+   const link=document.createElement('a');link.href='https://github.com/Doukyogit/mavideotheque/commit/'+commit.sha;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Voir le commit sur GitHub';box.append(document.createElement('br'),link);
+  }else setStatus(box,'Tout est déjà à jour.','good');
+ }catch(e){setStatus(box,'Actualisation interrompue. Aucun commit partiel n’a été effectué. '+(e.message||'Erreur inconnue.'),'bad')}
+ finally{button.disabled=false;/* plus d’action manuelle de saga */}
+}
+
+async function refreshMissingMovieData(){
+ const button=$('#refreshMovieData'),box=$('#movieDataBulkStatus');box.classList.remove('hide');
+ if(button.disabled)return;
+ button.disabled=true;
+ const BATCH_SIZE=50;
+ let committed=0;
+ try{
+  validateToken();
+  GITHUB_KEY=$('#githubToken').value.trim();saveGithubToken(GITHUB_KEY);
+  if(!GITHUB_KEY)throw new Error('Renseigne ton jeton GitHub dans la section Accès GitHub.');
+  const response=await fetch(RAW_REPO+'data/index.json?ts='+Date.now(),{cache:'no-store'});
+  if(!response.ok)throw new Error('Impossible de lire data/index.json (HTTP '+response.status+').');
+  const index=await response.json();
+  if(!Array.isArray(index.films))throw new Error('Format inattendu pour data/index.json.');
+  const records=new Array(index.films.length);let cursor=0,readCount=0,failure=null;
+  setStatus(box,'Lecture des fiches depuis GitHub : 0 / '+index.films.length+'…');
+  const reader=async()=>{
+   while(!failure){
+    const pos=cursor++;if(pos>=index.films.length)return;
+    const film=index.films[pos];
+    try{
+     const r=await fetch(RAW_REPO+'data/films/'+encodeURIComponent(film.id)+'.json?ts='+Date.now(),{cache:'no-store'});
+     if(!r.ok)throw new Error('Impossible de lire la fiche '+film.id+' (HTTP '+r.status+').');
+     const detail=await r.json(),extra=detail.extra||{},tmdb=detail.tmdb||{};
+     const has=(obj,keys)=>!!obj&&keys.every(key=>Object.prototype.hasOwnProperty.call(obj,key));
+     const tmdbFields=['tmdbId','title','releaseDate','runtime','genres','genreIds','countries','languages','directors','writers','composers','cinematographers','editors','producers','cast','collection','keywords','certificationFR','certificationUS','budget','revenue','voteAverage','voteCount','posterPath','backdropPath','social'];
+     const extraFields=['credits','alternativeTitles','externalIds','keywords','releaseDates','translations','videos','images','recommendations','similar','watchProviders','reviews','belongsToCollection','productionCompanies','productionCountries','spokenLanguages','genres'];
+     const needs=!has(tmdb,tmdbFields)||!has(extra,extraFields)||!has(extra.credits,['cast','crew'])||!has(extra.images,['posters','backdrops','logos']);
+     records[pos]={film,detail,needs};readCount++;
+     if(readCount%50===0||readCount===index.films.length)setStatus(box,'Lecture des fiches depuis GitHub : '+readCount+' / '+index.films.length+'…');
+    }catch(e){failure=e;return}
+   }
+  };
+  await Promise.all(Array.from({length:8},reader));
+  if(failure)throw failure;
+  const todo=records.filter(x=>x&&x.needs);
+  if(!todo.length){setStatus(box,'Tout est déjà à jour : '+records.length+' fiche(s) vérifiée(s), aucune requête TMDB nécessaire.','good');return}
+  const estimate=Math.ceil(todo.length*MOVIE_REQUEST_GAP/60000);
+  if(!confirm(todo.length+' fiche(s) sur '+records.length+' nécessitent des données. Elles seront actualisées une par une, avec au moins une seconde entre les requêtes TMDB (environ '+estimate+' minute(s), hors pagination). Un commit GitHub sera créé tous les '+BATCH_SIZE+' films, et le dernier lot pourra être plus petit. En cas d’interruption, les lots déjà enregistrés seront conservés et ignorés à la prochaine exécution. Continuer ?'))return;
+  const updatedIndex=[...index.films];let batchFiles=[],batchCount=0;
+  const saveBatch=async()=>{
+   if(!batchFiles.length)return;
+   const batchNumber=Math.ceil(committed/BATCH_SIZE)+1;
+   const files=[...batchFiles,{name:'data/index.json',content:JSON.stringify({...index,count:updatedIndex.length,generatedAt:new Date().toISOString(),films:updatedIndex})}];
+   setStatus(box,'Enregistrement du lot '+batchNumber+' sur GitHub ('+batchCount+' film(s), '+committed+' / '+todo.length+' au total)…');
+   const commit=await commitFilesToGitHub(files,'Actualisation TMDB — lot '+batchNumber+' ('+batchCount+' films)');
+   committed+=batchCount;batchFiles=[];batchCount=0;
+   setStatus(box,'Lot enregistré : '+committed+' / '+todo.length+' film(s). Commit '+commit.sha.slice(0,7)+'.');
+  };
+  for(let i=0;i<todo.length;i++){
+   const item=todo[i],film=item.film,detail=item.detail;
+   const tmdbId=detail.tmdb?.tmdbId||Number((film.id.match(/^t(\d+)/)||[])[1]);
+   if(!tmdbId)throw new Error('Identifiant TMDB introuvable pour la fiche '+film.id+'.');
+   setStatus(box,'TMDB : '+(i+1)+' / '+todo.length+' — '+(film.t||detail.tmdb?.title||film.id)+'…');
+   const d=await fetchMovieDetails(tmdbId);
+   if(Number(d.id)!==Number(tmdbId))throw new Error('TMDB a renvoyé un identifiant inattendu pour '+film.id+'.');
+   const t=shape(d),extra=fitExtra(buildExtra(d)),record={...detail,status:'ok',tmdb:t,extra},raw=JSON.stringify(record),hash=h53(raw);
+   batchFiles.push({name:'data/films/'+film.id+'.json',content:raw});
+   const pos=updatedIndex.findIndex(x=>x.id===film.id);
+   if(pos<0)throw new Error('Le film '+film.id+' a disparu de l’index.');
+   updatedIndex[pos]={...updatedIndex[pos],t:t.title||film.t,o:t.originalTitle||null,y:(t.releaseDate||'').slice(0,4)*1||film.y||null,d:(t.directors&&t.directors.length)?t.directors:film.d||[],m:t.runtime||null,g:t.genres||[],p:t.posterPath||null,s:'ok',h:hash,c:t.collection?t.collection.id:null,cn:t.collection?t.collection.name:null};
+   batchCount++;
+   if(batchCount>=BATCH_SIZE||i===todo.length-1)await saveBatch();
+   if(i<todo.length-1)await waitMs(MOVIE_REQUEST_GAP);
+  }
+  setStatus(box,'Terminé : '+committed+' fiche(s) actualisée(s), '+(records.length-committed)+' déjà complètes ou non concernées. '+Math.ceil(committed/BATCH_SIZE)+' commit(s) créé(s).','good');
+ }catch(e){setStatus(box,'Actualisation interrompue après '+committed+' film(s) enregistrés. Les lots déjà commités sont conservés et seront ignorés à la prochaine exécution. '+(e.message||'Erreur inconnue.'),'bad')}
+ finally{button.disabled=false}
+}
+
+function decodeBase64Utf8(value){const bin=atob(value.replace(/\\s/g,'')),bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));return new TextDecoder().decode(bytes)}
+
+function headersAndUrl(path,params={}){const u=new URL('https://api.themoviedb.org/3'+path);Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));return [u,{headers:{Authorization:'Bearer '+KEY}}]}
+async function api(path,params={}){const [u,opt]=headersAndUrl(path,params);const r=await fetch(u.href,opt);if(r.status===401)throw new Error('TMDB refuse le token (401). Vérifie la clé ou le jeton.');if(r.status===429)throw new Error('Limite de requêtes TMDB atteinte. Réessaie dans un instant.');if(!r.ok)throw new Error('Erreur TMDB '+r.status);return r.json()}
+const MOVIE_REQUEST_GAP=1000;
+async function movieApi(path,params={}){try{return await api(path,params)}catch(e){if(!String(e.message).includes('Limite de requêtes TMDB'))throw e;await waitMs(10000);return api(path,params)}}
+async function fetchMovieDetails(id){
+ const d=await movieApi('/movie/'+id,{language:'fr-FR',append_to_response:APPEND,include_image_language:'fr,en,null',include_video_language:'fr,en,null'});
+ if(!d.overview){const en=((d.translations||{}).translations||[]).find(x=>x.iso_639_1==='en'&&x.data?.overview);if(en){d.overview=en.data.overview;d.overviewLang='en'}}
+ return d;
+}
+function posterUrl(path){return path?'https://image.tmdb.org/t/p/w185'+path:''}
+function validateToken(){KEY=$('#token').value.trim();if(!KEY)throw new Error('Renseigne d’abord ton jeton TMDB Read Access Token.');if(KEY.length<40)throw new Error('Utilise le jeton « Read Access Token » de TMDB, pas la clé API v3.');saveToken(KEY)}
+async function searchMovies(){try{validateToken()}catch(e){setStatus($('#searchStatus'),e.message,'bad');return}const q=$('#query').value.trim();if(!q){setStatus($('#searchStatus'),'Saisis un titre de film.','bad');return}$('#search').disabled=true;$('#results').innerHTML='';setStatus($('#searchStatus'),'Recherche en cours…');try{const p={query:q,language:'fr-FR',include_adult:'false'};if($('#year').value)p.year=$('#year').value;const d=await api('/search/movie',p);const items=d.results||[];if(!items.length){setStatus($('#searchStatus'),'Aucun résultat. Essaie un autre titre ou retire l’année.','warn');return}setStatus($('#searchStatus'),`${items.length} résultat(s). Sélectionne le bon film.`);$('#results').innerHTML=items.slice(0,12).map(x=>`<article class="movie"><img alt="" src="${posterUrl(x.poster_path)}"><div class="info"><b>${esc(x.title||x.original_title)}</b><span class="mute">${esc((x.release_date||'').slice(0,4)||'Année inconnue')}</span><p class="mute">${esc((x.overview||'').slice(0,135))}${(x.overview||'').length>135?'…':''}</p><button type="button" data-movie="${x.id}">Choisir ce film</button></div></article>`).join('');$('#results').querySelectorAll('[data-movie]').forEach(b=>b.addEventListener('click',()=>selectMovie(+b.dataset.movie)))}catch(e){setStatus($('#searchStatus'),e.message,'bad')}finally{$('#search').disabled=false}}
+async function selectMovie(id){try{validateToken()}catch(e){setStatus($('#searchStatus'),e.message,'bad');return}$('#results').querySelectorAll('button').forEach(b=>b.disabled=true);setStatus($('#searchStatus'),'Récupération de la fiche complète TMDB…');try{const d=await fetchMovieDetails(id);selected=d;const year=(d.release_date||'').slice(0,4);$('#selectedMovie').innerHTML=`<img alt="" src="${posterUrl(d.poster_path)}"><div><b>${esc(d.title)}</b><div class="mute">${esc(year||'Année inconnue')} · ${esc((d.credits?.crew||[]).filter(x=>x.job==='Director').map(x=>x.name).join(', ')||'Réalisateur non renseigné')}</div><p class="mute">${esc(d.overview||'Pas de synopsis disponible.')}</p><a href="https://www.themoviedb.org/movie/${d.id}" target="_blank" rel="noopener noreferrer">Voir la fiche TMDB</a></div>`;if(mode==='add')$('#watched').value=today();$('#selection').classList.remove('hide');setStatus($('#detailStatus'),'Fiche TMDB complète chargée. Vérifie le film puis renseigne ta note et la date.');$('#selection').scrollIntoView({behavior:'smooth',block:'start'})}catch(e){selected=null;setStatus($('#searchStatus'),e.message,'bad')}finally{$('#results').querySelectorAll('button').forEach(b=>b.disabled=false)}}
+function shape(d){const crew=(d.credits||{}).crew||[],uniq=a=>[...new Set(a)],by=(...jobs)=>uniq(crew.filter(x=>jobs.includes(x.job)).map(x=>x.name));const rd=(d.release_dates||{}).results||[];const cert=c=>{const x=rd.find(r=>r.iso_3166_1===c);const y=x&&(x.release_dates||[]).find(z=>z.certification);return y?y.certification:null};const ext=d.external_ids||{};return {tmdbId:d.id,imdbId:d.imdb_id||ext.imdb_id||null,wikidataId:ext.wikidata_id||null,title:d.title,originalTitle:d.original_title,altTitles:[...new Set(((d.alternative_titles||{}).titles||[]).map(x=>x.title))],tagline:d.tagline||'',overview:d.overview||'',overviewLang:d.overviewLang||'fr',releaseDate:d.release_date||null,runtime:d.runtime||null,status:d.status||null,genres:(d.genres||[]).map(g=>g.name),genreIds:(d.genres||[]).map(g=>g.id),countries:(d.production_countries||[]).map(x=>x.name),originCountry:d.origin_country||[],languages:(d.spoken_languages||[]).map(x=>x.name||x.english_name),originalLanguage:d.original_language,directors:by('Director'),directorIds:uniq(crew.filter(x=>x.job==='Director').map(x=>x.id)),writers:by('Screenplay','Writer','Novel'),composers:by('Original Music Composer'),cinematographers:by('Director of Photography'),editors:by('Editor'),producers:by('Producer'),cast:((d.credits||{}).cast||[]).slice(0,15).map(x=>({id:x.id,name:x.name,character:x.character,profilePath:x.profile_path||null})),companies:(d.production_companies||[]).map(x=>x.name),collection:d.belongs_to_collection?{id:d.belongs_to_collection.id,name:d.belongs_to_collection.name}:null,keywords:((d.keywords||{}).keywords||[]).map(x=>x.name),certificationFR:cert('FR'),certificationUS:cert('US'),budget:d.budget||null,revenue:d.revenue||null,popularity:d.popularity,voteAverage:d.vote_average,voteCount:d.vote_count,adult:!!d.adult,posterPath:d.poster_path,backdropPath:d.backdrop_path,homepage:d.homepage||null,social:{facebook:ext.facebook_id||null,instagram:ext.instagram_id||null,twitter:ext.twitter_id||null}}}
+function buildExtra(d){const A=x=>Array.isArray(x)?x:[],pick=(o,ks)=>{const r={};ks.forEach(k=>{if(o[k]!==undefined)r[k]=o[k]});return r};const im=d.images||{},ik=['file_path','width','height','iso_639_1','vote_average','vote_count'],mk=['id','title','original_title','release_date','poster_path','vote_average','genre_ids','original_language'];return {credits:{cast:A((d.credits||{}).cast).map(x=>pick(x,['id','name','original_name','character','order','gender','known_for_department','profile_path'])),crew:A((d.credits||{}).crew).map(x=>pick(x,['id','name','original_name','job','department','gender','profile_path']))},alternativeTitles:A((d.alternative_titles||{}).titles),externalIds:d.external_ids||{},keywords:A((d.keywords||{}).keywords),releaseDates:A((d.release_dates||{}).results),translations:A((d.translations||{}).translations).map(t=>({iso_639_1:t.iso_639_1,iso_3166_1:t.iso_3166_1,name:t.name,english_name:t.english_name,title:(t.data||{}).title||'',overview:(t.data||{}).overview||'',tagline:(t.data||{}).tagline||''})).filter(t=>t.title||t.overview||t.tagline),videos:A((d.videos||{}).results).map(x=>pick(x,['key','site','type','name','iso_639_1','official','published_at','size'])),images:{posters:A(im.posters).slice(0,40).map(x=>pick(x,ik)),backdrops:A(im.backdrops).slice(0,40).map(x=>pick(x,ik)),logos:A(im.logos).slice(0,20).map(x=>pick(x,ik))},recommendations:A((d.recommendations||{}).results).slice(0,20).map(x=>pick(x,mk)),similar:A((d.similar||{}).results).slice(0,20).map(x=>pick(x,mk)),watchProviders:(d['watch/providers']||{}).results||{},reviews:A((d.reviews||{}).results).slice(0,5).map(x=>({author:x.author,rating:(x.author_details||{}).rating??null,created_at:x.created_at,url:x.url,content:(x.content||'').slice(0,3000)})),belongsToCollection:d.belongs_to_collection||null,productionCompanies:A(d.production_companies),productionCountries:A(d.production_countries),spokenLanguages:A(d.spoken_languages),genres:A(d.genres)}}
+function fitExtra(x){const big=()=>JSON.stringify(x).length>230000;const trims=[()=>{x.images.posters.length=Math.min(x.images.posters.length,15);x.images.backdrops.length=Math.min(x.images.backdrops.length,15);x.images.logos.length=Math.min(x.images.logos.length,5)},()=>{x.reviews=x.reviews.slice(0,2)},()=>{x.similar=x.similar.slice(0,8);x.recommendations=x.recommendations.slice(0,8)},()=>{x.credits.crew=x.credits.crew.slice(0,150)},()=>{x.credits.cast=x.credits.cast.slice(0,100)},()=>{x.translations=x.translations.filter(t=>t.iso_639_1==='fr'||t.iso_639_1==='en')}];for(const t of trims){if(!big())break;t()}return x}
+function h53(str){let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<str.length;i++){const c=str.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return (4294967296*(2097151&h2)+(h1>>>0)).toString(36)}
+function crc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++){let x=(c^u8[i])&255;for(let k=0;k<8;k++)x=x&1?0xEDB88320^(x>>>1):x>>>1;c=x^(c>>>8)}return (c^0xFFFFFFFF)>>>0}
+function makeZip(files){const enc=new TextEncoder(),parts=[],cd=[];let off=0;const n=new Date(),dt=(((n.getFullYear()-1980)<<9)|((n.getMonth()+1)<<5)|n.getDate())&65535,tm=((n.getHours()<<11)|(n.getMinutes()<<5)|(n.getSeconds()>>1))&65535;for(const f of files){const name=enc.encode(f.name),crc=crc32(f.data),sz=f.data.length,h=new DataView(new ArrayBuffer(30));h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(10,tm,true);h.setUint16(12,dt,true);h.setUint32(14,crc,true);h.setUint32(18,sz,true);h.setUint32(22,sz,true);h.setUint16(26,name.length,true);parts.push(h.buffer,name,f.data);const c=new DataView(new ArrayBuffer(46));c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(12,tm,true);c.setUint16(14,dt,true);c.setUint32(16,crc,true);c.setUint32(20,sz,true);c.setUint32(24,sz,true);c.setUint16(28,name.length,true);c.setUint32(42,off,true);cd.push(c.buffer,name);off+=30+name.length+sz}const cdSize=cd.reduce((a,b)=>a+b.byteLength,0),e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cdSize,true);e.setUint32(16,off,true);return new Blob([...parts,...cd,e.buffer],{type:'application/zip'})}
+function saveBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),10000)}
+function renderQueue(){
+ $('#count').textContent=queue.length;$('#export').disabled=!queue.length||busy;$('#publish').disabled=!queue.length||busy;$('#clearQueue').disabled=!queue.length||busy;
+ if(!queue.length){$('#queue').textContent='Aucun film ajouté pour le moment.';return}
+ $('#queue').innerHTML=queue.map((x,i)=>{const editing=x.operation==='edit',name=editing?(x.tmdb.title||x.csv.title):x.csv.title;return `<div class="queue-item"><span><b>${esc(name)}</b> (${x.csv.year||'?'}) · ${editing?'Modification':'Ajout'} · note ${x.csv.rating}/10 · vu le ${esc(x.csv.watchedDate)}</span><button class="alt" data-remove="${i}" type="button">Retirer</button></div>`}).join('');
+ $('#queue').querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',()=>{queue.splice(+b.dataset.remove,1);renderQueue()}))
+}
+function addSelected(){
+ if(!selected)return;
+ const rating=$('#rating').value===''?null:Number($('#rating').value),watchedDate=$('#watched').value;
+ if(rating!==null&&(!Number.isFinite(rating)||rating<0||rating>10)){setStatus($('#detailStatus'),'La note doit être comprise entre 0 et 10.','bad');return}
+ if(!watchedDate){setStatus($('#detailStatus'),'Indique la date de visionnage.','bad');return}
+ const year=Number((selected.release_date||'').slice(0,4))||(mode==='edit'?(editTarget.detail.csv.year||editTarget.indexEntry.y||null):null),foundDirectors=[...new Set((selected.credits?.crew||[]).filter(x=>x.job==='Director').map(x=>x.name))],directors=foundDirectors.length?foundDirectors:(mode==='edit'?(editTarget.detail.csv.directors||editTarget.indexEntry.d||[]):[]);
+ if(mode==='edit'){
+  if(!editTarget){setStatus($('#detailStatus'),'Aucun film existant sélectionné.','bad');return}
+  if(queue.some(x=>x.operation==='edit'&&x.id===editTarget.id)){setStatus($('#detailStatus'),'Cette fiche est déjà dans la sélection.','warn');return}
+  const csv={...editTarget.detail.csv,title:selected.title||editTarget.detail.csv.title,year,directors,rating,watchedDate};
+  queue.push({operation:'edit',id:editTarget.id,tmdb:selected,csv,original:editTarget.detail});
+  setStatus($('#detailStatus'),'Correction ajoutée à la sélection. Les données personnelles et l’identifiant interne seront conservés.','good');
+ }else{
+  if(queue.some(x=>x.operation==='add'&&x.tmdb.id===selected.id)){setStatus($('#detailStatus'),'Ce film est déjà dans la sélection.','warn');return}
+  queue.push({operation:'add',tmdb:selected,csv:{title:selected.title,year,directors,rating,watchedDate}});
+  setStatus($('#detailStatus'),'Film ajouté à la sélection. Tu peux en rechercher un autre.','good');
+ }
+ renderQueue();selected=null;editTarget=null;$('#selection').classList.add('hide');
+ if(mode==='edit'){$('#tmdbSection').classList.add('hide');$('#localSection').classList.remove('hide');}
+}
+async function loadLocalIndex(){
+ if(localIndex)return localIndex;
+ const r=await fetch(PUBLISHED+'data/index.json?ts='+Date.now(),{cache:'no-store'});
+ if(!r.ok)throw new Error('Impossible de lire la vidéothèque ('+r.status+').');
+ const d=await r.json();if(!Array.isArray(d.films))throw new Error('Format inattendu pour data/index.json.');
+ localIndex=d;return d;
+}
+async function searchLocal(){
+ const q=norm($('#localQuery').value);if(!q){setStatus($('#localStatus'),'Saisis un titre à rechercher.','bad');return}
+ $('#localSearch').disabled=true;$('#localResults').innerHTML='';setStatus($('#localStatus'),'Lecture de ta vidéothèque…');
+ try{
+  const d=await loadLocalIndex(),terms=q.split(' '),hits=d.films.filter(f=>{const hay=norm([f.t,f.o,...(f.d||[])].join(' '));return terms.every(t=>hay.includes(t))}).slice(0,40);
+  if(!hits.length){setStatus($('#localStatus'),'Aucun film trouvé. Essaie un autre titre.','warn');return}
+  setStatus($('#localStatus'),hits.length+' résultat(s). Choisis la fiche à corriger.');
+  $('#localResults').innerHTML=hits.map(f=>`<article class="movie"><img alt="" src="${posterUrl(f.p)}"><div class="info"><b>${esc(f.t)}</b><span class="mute">${esc(f.y||'Année inconnue')} · Vu le ${esc(f.w||'date inconnue')}</span><p class="mute">Note personnelle : ${esc(f.r??'—')}/10 · ${esc((f.d||[]).join(', '))}</p><button type="button" data-local-id="${esc(f.id)}">Modifier cette fiche</button></div></article>`).join('');
+  $('#localResults').querySelectorAll('[data-local-id]').forEach(b=>b.addEventListener('click',()=>loadLocalFilm(b.dataset.localId)));
+ }catch(e){setStatus($('#localStatus'),e.message,'bad')}finally{$('#localSearch').disabled=false}
+}
+async function loadLocalFilm(id){
+ if(!/^[A-Za-z0-9_-]+$/.test(id)){setStatus($('#localStatus'),'Identifiant de fiche invalide.','bad');return}
+ $('#localResults').querySelectorAll('button').forEach(b=>b.disabled=true);setStatus($('#localStatus'),'Chargement de la fiche existante…');
+ try{
+  const idx=(await loadLocalIndex()).films.find(x=>x.id===id);if(!idx)throw new Error('Cette fiche n’existe plus dans l’index.');
+  let detail=localDetails.get(id);
+  if(!detail){const r=await fetch(PUBLISHED+'data/films/'+encodeURIComponent(id)+'.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('Impossible de charger la fiche JSON ('+r.status+').');detail=await r.json();if(detail.id!==id)throw new Error('L’identifiant du fichier ne correspond pas à celui de l’index.');localDetails.set(id,detail)}
+  if(!detail.csv||!detail.tmdb)throw new Error('La structure de cette fiche est incomplète.');
+  editTarget={id,indexEntry:idx,detail};mode='edit';
+  $('#query').value=detail.tmdb.title||idx.t||'';$('#year').value=detail.tmdb.releaseDate?.slice(0,4)||idx.y||'';
+  $('#rating').value=detail.csv.rating??idx.r??'';$('#watched').value=detail.csv.watchedDate||idx.w||'';
+  $('#selectedMovie').innerHTML=`<div><b>Fiche actuelle : ${esc(idx.t)}</b><div class="mute">Identifiant interne conservé : ${esc(id)} · TMDB actuel : ${esc(detail.tmdb.tmdbId??'inconnu')}</div><p class="mute">Recherche maintenant le bon film sur TMDB. La note et la date de visionnage sont préremplies et restent modifiables.</p></div>`;
+  $('#selection').classList.remove('hide');$('#tmdbSection').classList.remove('hide');$('#localSection').classList.add('hide');
+  setStatus($('#searchStatus'),'Recherche le bon film sur TMDB, puis sélectionne-le.','good');$('#query').focus();
+ }catch(e){setStatus($('#localStatus'),e.message,'bad')}finally{$('#localResults').querySelectorAll('button').forEach(b=>b.disabled=false)}
+}
+function setMode(next){
+ mode=next;selected=null;editTarget=null;$('#selection').classList.add('hide');$('#results').innerHTML='';$('#localResults').innerHTML='';
+ $('#modeAdd').classList.toggle('alt',next!=='add');$('#modeEdit').classList.toggle('alt',next!=='edit');
+ $('#modeHelp').textContent=next==='add'?'Ajoute un nouveau film à ta vidéothèque.':'Retrouve une fiche existante, puis remplace ses données TMDB sans perdre sa note, sa date ni son identifiant interne.';
+ $('#localSection').classList.toggle('hide',next!=='edit');$('#tmdbSection').classList.toggle('hide',next==='edit');
+ if(next==='edit'){$('#localQuery').value='';setStatus($('#localStatus'),'Recherche dans ta vidéothèque.');$('#localQuery').focus()}
+ else{setStatus($('#searchStatus'),'');$('#query').value='';$('#year').value=''}
+}
+async function buildChanges(base){
+ if(!base){const r=await fetch(PUBLISHED+'data/index.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('Impossible de lire data/index.json sur le site ('+r.status+').');base=await r.json()}
+ if(!Array.isArray(base.films))throw new Error('Format inattendu pour data/index.json.');
+ const index=[...base.films],files=[],done=[],sagaCache=new Map();
+ for(const item of queue){
+  const d=item.tmdb,csv=item.csv,t=shape(d),extra=fitExtra(buildExtra(d));
+  const collection=d.belongs_to_collection;
+  if(collection&&collection.id&&!sagaCache.has(String(collection.id))){
+   const sid=String(collection.id),saga=await api('/collection/'+sid,{language:'fr-FR'});
+   if(!saga||!Array.isArray(saga.parts))throw new Error('Impossible de récupérer la saga « '+(collection.name||sid)+' » depuis TMDB. Aucun film ne sera enregistré.');
+   sagaCache.set(sid,true);
+   files.push({name:'data/sagas/'+sid+'.json',content:JSON.stringify({...saga,fetchedAt:new Date().toISOString()})});
+   done.push('saga actualisée : '+(saga.name||collection.name||sid));
+  }
+  if(item.operation==='edit'){
+   const id=item.id,pos=index.findIndex(x=>x.id===id);if(pos<0)throw new Error('La fiche '+id+' n’existe plus dans l’index en ligne. Aucun changement effectué.');
+   const collision=index.find(x=>x.id!==id&&(x.id==='t'+d.id||x.id.startsWith('t'+d.id+'-')||x.id.startsWith('t'+d.id+'_')));
+   if(collision)throw new Error('Le film TMDB '+d.id+' semble déjà associé à une autre fiche ('+collision.id+'). Corrige ce doublon avant l’enregistrement.');
+   const original=item.original;if(!original||original.id!==id)throw new Error('Données originales manquantes pour '+id+'.');
+   const key=keyOf(csv),record={...original,id,key,csv,status:'ok',tmdb:t,extra},raw=JSON.stringify(record),h=h53(raw),old=index[pos];
+   index[pos]={...old,id,t:t.title||csv.title,o:t.originalTitle||null,y:(t.releaseDate||'').slice(0,4)*1||csv.year||null,d:(t.directors&&t.directors.length)?t.directors:csv.directors,r:csv.rating,w:csv.watchedDate,m:t.runtime||null,g:t.genres||[],p:t.posterPath||null,s:'ok',h,c:t.collection?t.collection.id:null,cn:t.collection?t.collection.name:null};
+   files.push({name:'data/films/'+id+'.json',content:raw});done.push('modifié : '+(t.title||csv.title));
+  }else{
+   const id='t'+d.id,key=keyOf(csv);
+   if(index.some(x=>x.id===id))throw new Error((d.title||csv.title)+' est déjà présent dans l’index (ID '+id+').');
+   if(index.some(x=>norm(x.t)+'|'+(x.y||'')===norm(csv.title)+'|'+(csv.year||'')))throw new Error((d.title||csv.title)+' semble déjà présent dans la collection (titre et année). Vérifie avant de continuer.');
+   const raw=JSON.stringify({id,key,csv,status:'ok',tmdb:t,extra}),h=h53(raw),idx={id,t:t.title||csv.title,o:t.originalTitle||null,y:(t.releaseDate||'').slice(0,4)*1||csv.year||null,d:(t.directors&&t.directors.length)?t.directors:csv.directors,r:csv.rating,w:csv.watchedDate,m:t.runtime||null,g:t.genres||[],p:t.posterPath||null,s:'ok',h,c:t.collection?t.collection.id:null,cn:t.collection?t.collection.name:null};
+   index.push(idx);files.push({name:'data/films/'+id+'.json',content:raw});done.push('ajouté : '+(d.title||csv.title));
+  }
+ }
+ index.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
+ files.unshift({name:'data/index.json',content:JSON.stringify({...base,count:index.length,generatedAt:new Date().toISOString(),films:index})});
+ return {files,done,index};
+}
+async function exportZip(){
+ if(busy||!queue.length)return;busy=true;renderQueue();const box=$('#exportStatus');box.classList.remove('hide');setStatus(box,'Préparation du ZIP…');
+ try{const {files,done}=await buildChanges(null),zipFiles=files.map(f=>({name:f.name,data:new TextEncoder().encode(f.content)}));saveBlob(makeZip(zipFiles),`videotheque-${today()}.zip`);setStatus(box,`${done.length} opération(s) préparée(s) :\\n• ${done.join('\\n• ')}\\n\\nLe ZIP contient les fiches concernées et l’index complet. Tu peux l’intégrer manuellement au dépôt.`,'good')}
+ catch(e){setStatus(box,e.message,'bad')}finally{busy=false;renderQueue()}
+}
+async function publishGitHub(){
+ if(busy||!queue.length)return;GITHUB_KEY=$('#githubToken').value.trim();saveGithubToken(GITHUB_KEY);
+ if(!GITHUB_KEY){setStatus($('#exportStatus'),'Renseigne ton jeton GitHub avant l’enregistrement direct.','bad');$('#githubToken').focus();return}
+ busy=true;renderQueue();const box=$('#exportStatus');box.classList.remove('hide');setStatus(box,'Connexion à GitHub et lecture de l’index actuel…');
+ try{
+  const content=await ghRequest('/contents/data/index.json?ref='+GH_BRANCH),base=JSON.parse(decodeBase64Utf8(content.content)),{files,done}=await buildChanges(base);
+  setStatus(box,'Préparation du commit GitHub…');
+  const ref=await ghRequest('/git/ref/heads/'+GH_BRANCH),parentSha=ref.object.sha,parent=await ghRequest('/git/commits/'+parentSha);
+  const blobs=await Promise.all(files.map(async file=>{const b=await ghRequest('/git/blobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:file.content,encoding:'utf-8'})});return {path:file.name,mode:'100644',type:'blob',sha:b.sha}}));
+  const tree=await ghRequest('/git/trees',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({base_tree:parent.tree.sha,tree:blobs})});
+  const commit=await ghRequest('/git/commits',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'Mise à jour de la vidéothèque',tree:tree.sha,parents:[parentSha]})});
+  await ghRequest('/git/refs/heads/'+GH_BRANCH,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({sha:commit.sha,force:false})});
+  const count=queue.length;queue=[];renderQueue();setStatus(box,`Enregistrement réussi : ${count} opération(s).\\n• ${done.join('\\n• ')}\\n\\nCommit créé sur GitHub : ${commit.sha.slice(0,7)}. La mise à jour du site peut prendre quelques instants.`,'good');
+  const link=document.createElement('a');link.href='https://github.com/DoukyoGit/mavideotheque/commit/'+commit.sha;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Voir le commit sur GitHub';box.append(document.createElement('br'),link);
+ }catch(e){let msg=e.message||'Erreur inconnue.';if(/Bad credentials/i.test(msg))msg='Jeton GitHub invalide ou expiré. Vérifie-le et réessaie.';else if(/Resource not accessible by personal access token/i.test(msg))msg='Le jeton n’a pas les permissions nécessaires. Autorise Contents en lecture et écriture sur ce dépôt.';else if(/Update is not a fast forward|Reference update failed/i.test(msg))msg='Le dépôt a changé pendant la préparation. Recharge la page et recommence pour éviter d’écraser un commit récent.';setStatus(box,'Aucun commit confirmé. '+msg,'bad')}
+ finally{busy=false;renderQueue()}
+}
+
+const KODI_IP_KEY='mavideotheque_kodi_ip';
+let kodiSocket=null,kodiRequestId=0,kodiPending=new Map(),kodiBusy=false;
+function kodiSetStatus(id,message,kind=''){const el=$('#'+id);el.classList.remove('hide');el.className='status'+(kind?' '+kind:'');el.textContent=message}
+function kodiAddress(){const host=$('#kodiHost').value.trim().replace(/^https?:\/\//i,'').replace(/\/.*$/,'');if(!host||/[\s/?#@]/.test(host))throw new Error('Saisis une adresse IP ou un nom d’hôte valide.');const port=Number($('#kodiPort').value);if(!Number.isInteger(port)||port<1||port>65535)throw new Error('Le port doit être compris entre 1 et 65535.');return {host,port,url:'ws://'+host+':'+port+'/jsonrpc'}}
+function kodiDisconnect(){if(kodiSocket){try{kodiSocket.close()}catch{}}kodiSocket=null;for(const [,p] of kodiPending)p.reject(new Error('Connexion Kodi interrompue.'));kodiPending.clear()}
+function kodiRpc(method,params={}){return new Promise((resolve,reject)=>{if(!kodiSocket||kodiSocket.readyState!==WebSocket.OPEN){reject(new Error('Aucune connexion Kodi active.'));return}const id=++kodiRequestId,timer=setTimeout(()=>{kodiPending.delete(id);reject(new Error('Kodi ne répond pas à '+method+'.'))},15000);kodiPending.set(id,{resolve:v=>{clearTimeout(timer);resolve(v)},reject:e=>{clearTimeout(timer);reject(e)}});try{kodiSocket.send(JSON.stringify({jsonrpc:'2.0',id,method,params}))}catch(e){clearTimeout(timer);kodiPending.delete(id);reject(e)}})}
+async function kodiConnect(){const {url}=kodiAddress();kodiDisconnect();return new Promise((resolve,reject)=>{let settled=false;const fail=e=>{if(settled)return;settled=true;kodiDisconnect();reject(e)};try{kodiSocket=new WebSocket(url)}catch(e){reject(new Error('Impossible de démarrer la connexion : '+e.message));return}const timer=setTimeout(()=>fail(new Error('Délai dépassé. Vérifie l’adresse IP, le port 9090 et le réglage de contrôle à distance dans Kodi.')),10000);kodiSocket.onopen=async()=>{try{const pong=await kodiRpc('JSONRPC.Ping');if(pong!=='pong')throw new Error('Réponse inattendue de Kodi.');if(!settled){settled=true;clearTimeout(timer);resolve(true)}}catch(e){clearTimeout(timer);fail(e)}};kodiSocket.onmessage=event=>{let data;try{data=JSON.parse(event.data)}catch{return}if(data.id!==undefined&&kodiPending.has(data.id)){const p=kodiPending.get(data.id);kodiPending.delete(data.id);if(data.error)p.reject(new Error(data.error.message||'Erreur JSON-RPC Kodi.'));else p.resolve(data.result)}};kodiSocket.onerror=()=>{clearTimeout(timer);fail(new Error('Connexion refusée ou bloquée. Vérifie le réglage de contrôle à distance et le port 9090.'))};kodiSocket.onclose=()=>{if(!settled)fail(new Error('Kodi a fermé la connexion.'))}})}
+async function kodiEnsureConnected(){if(kodiSocket&&kodiSocket.readyState===WebSocket.OPEN)return true;await kodiConnect();return true}
+async function kodiFetchMovies(){const all=[];let start=0,total=Infinity;const pageSize=200;while(start<total){const result=await kodiRpc('VideoLibrary.GetMovies',{properties:['title','originaltitle','year','playcount','uniqueid','imdbnumber','lastplayed'],limits:{start,end:start+pageSize},sort:{method:'title',order:'ascending'}});const movies=result.movies||[],limits=result.limits||{};all.push(...movies);total=Number(limits.total??all.length);if(!movies.length)break;start+=movies.length;if(movies.length<pageSize)break;kodiSetStatus('kodiCompareStatus','Récupération des films Kodi : '+Math.min(all.length,total)+' / '+total+'…')}return all}
+function kodiTmdbId(m){
+ const ids=m.uniqueid||{};
+ const raw=ids.tmdb??ids.tmdbid??ids.themoviedb;
+ const value=raw&&typeof raw==='object'?(raw.value??raw.id):raw;
+ const match=String(value??'').match(/^\s*(\d+)\s*$/);
+ return match?match[1]:null;
+}
+function appTmdbId(f){const match=String(f.id||'').match(/^t(\d+)/);return match?match[1]:null}
+function appWatched(f){return Boolean(f.w&&/^\d{4}-\d{2}-\d{2}$/.test(f.w))}
+function kodiWatched(m){return Number(m.playcount||0)>0}
+function kodiRenderList(id,items){
+ const el=$('#'+id);
+ if(!items.length){el.innerHTML='<p class="mute">Aucun élément dans cette catégorie.</p>';return}
+ el.innerHTML=items.map(x=>'<article class="comparison-item"><b>'+esc(x.title)+(x.year?' ('+esc(x.year)+')':'')+'</b><span class="mute">'+esc(x.detail||'')+'</span></article>').join('')
+}
+async function kodiCompare(){
+ if(kodiBusy)return;
+ kodiBusy=true;$('#kodiCompare').disabled=true;$('#kodiTest').disabled=true;
+ $('#kodiResults').classList.add('hide');$('#kodiSummary').classList.add('hide');
+ try{
+  const address=kodiAddress();storageSet(KODI_IP_KEY,address.host);
+  kodiSetStatus('kodiCompareStatus','Connexion à Kodi…');
+  await kodiEnsureConnected();
+  kodiSetStatus('kodiCompareStatus','Lecture de ta vidéothèque…');
+  const [appIndex,kodiMovies]=await Promise.all([
+   fetch(PUBLISHED+'data/index.json?ts='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('Impossible de lire l’index ('+r.status+').');return r.json()}),
+   kodiFetchMovies()
+  ]);
+  if(!Array.isArray(appIndex.films))throw new Error('Index de vidéothèque invalide.');
+  const appFilms=appIndex.films,byTmdb=new Map();
+  for(const f of appFilms){
+   const tid=appTmdbId(f);
+   if(tid){if(!byTmdb.has(tid))byTmdb.set(tid,[]);byTmdb.get(tid).push(f)}
+  }
+  kodiSetStatus('kodiCompareStatus','Comparaison TMDB stricte de '+appFilms.length+' entrées avec '+kodiMovies.length+' films Kodi…');
+  const matchedApp=new Set(),appOnly=[],kodiOnly=[],unidentified=[],missingKodi=new Map();
+  for(const m of kodiMovies){
+   const tid=kodiTmdbId(m),title=m.title||m.originaltitle||'Titre inconnu',year=Number(m.year)||null,watched=kodiWatched(m);
+   if(!tid){
+    unidentified.push({title,year,detail:(watched?'Kodi : vu':'Kodi : non vu')+' · aucun identifiant TMDB fourni par Kodi.'});
+    continue;
+   }
+   const candidates=byTmdb.get(tid)||[];
+   if(!candidates.length){
+    if(watched)kodiOnly.push({title,year,detail:'Kodi : vu · absent de ta vidéothèque · TMDB '+tid});
+    continue;
+   }
+   for(const f of candidates)matchedApp.add(f.id);
+   const seen=candidates.some(appWatched);
+   if(seen&&!watched){
+    const f=candidates.find(appWatched);
+    appOnly.push({title:f.t||title,year:f.y||year,detail:'Application : vu le '+f.w+' · Kodi : non vu · TMDB '+tid});
+   }else if(watched&&!seen){
+    kodiOnly.push({title:candidates[0].t||title,year:candidates[0].y||year,detail:'Kodi : vu · application : non marqué comme vu · TMDB '+tid});
+   }
+  }
+  for(const f of appFilms){
+   if(appWatched(f)&&!matchedApp.has(f.id)){
+    const key=appTmdbId(f)||f.id;
+    if(!missingKodi.has(key))missingKodi.set(key,{title:f.t,year:f.y,detail:'Application : vu le '+f.w+' · film non retrouvé dans Kodi · TMDB '+(appTmdbId(f)||'inconnu')});
+   }
+  }
+  kodiRenderList('kodiAppOnly',appOnly);
+  kodiRenderList('kodiKodiOnly',kodiOnly);
+  kodiRenderList('kodiUnidentified',unidentified);
+  kodiRenderList('kodiMissing',[...missingKodi.values()]);
+  $('#kodiSummary').classList.remove('hide');
+  $('#kodiSummary').innerHTML='<div class="results"><article class="comparison-item"><b>'+appOnly.length+'</b><span class="mute">Vus dans l’application, non vus dans Kodi</span></article><article class="comparison-item"><b>'+kodiOnly.length+'</b><span class="mute">Vus dans Kodi, non marqués vus dans l’application</span></article><article class="comparison-item"><b>'+unidentified.length+'</b><span class="mute">Films Kodi sans identifiant TMDB</span></article><article class="comparison-item"><b>'+missingKodi.size+'</b><span class="mute">Vus dans l’application, absents de Kodi</span></article></div><p class="mute">Comparaison terminée : '+kodiMovies.length+' films Kodi et '+appFilms.length+' entrées dans l’application. Seuls les identifiants TMDB exacts sont utilisés ; aucun rapprochement IMDb, titre ou année n’est effectué.</p>';
+  $('#kodiResults').classList.remove('hide');
+  kodiSetStatus('kodiCompareStatus','Comparaison terminée. Aucun élément n’a été modifié.','good');
+ }catch(e){
+  let msg=e.message||'Erreur inconnue.';
+  if(/Failed to fetch|NetworkError|WebSocket/i.test(msg))msg+=' Chrome peut bloquer l’accès au réseau local : autorise-le pour ce site. Vérifie aussi le réglage « contrôle à distance par des applications sur d’autres systèmes ».';
+  kodiSetStatus('kodiCompareStatus',msg,'bad');
+ }finally{kodiBusy=false;$('#kodiCompare').disabled=false;$('#kodiTest').disabled=false}
+}
+async function kodiTest(){if(kodiBusy)return;kodiBusy=true;$('#kodiTest').disabled=true;$('#kodiCompare').disabled=true;try{const address=kodiAddress();storageSet(KODI_IP_KEY,address.host);kodiSetStatus('kodiConnectionStatus','Connexion à '+address.host+':'+address.port+'…');await kodiConnect();const v=await kodiRpc('JSONRPC.Version'),label=v?.version?'API JSON-RPC '+v.version.major+'.'+v.version.minor+'.'+v.version.patch:'API JSON-RPC disponible';kodiSetStatus('kodiConnectionStatus','Connexion réussie à Kodi ('+label+').','good')}catch(e){let msg=e.message||'Erreur inconnue.';if(/Failed to fetch|NetworkError|WebSocket/i.test(msg))msg+=' Vérifie l’adresse, le port 9090, le contrôle depuis les autres systèmes et l’autorisation réseau local de Chrome.';kodiSetStatus('kodiConnectionStatus',msg,'bad')}finally{kodiBusy=false;$('#kodiTest').disabled=false;$('#kodiCompare').disabled=false}}
+function setKodiWorkflow(){setWorkflow('kodi')}
+$('#workflowKodi').onclick=setKodiWorkflow;$('#workflowSagas').onclick=()=>setWorkflow('sagas');$('#workflowTokens').onclick=()=>setWorkflow('tokens');$('#kodiTest').onclick=kodiTest;$('#kodiCompare').onclick=kodiCompare;const savedKodiIp=storageGet(KODI_IP_KEY);if(savedKodiIp)$('#kodiHost').value=savedKodiIp;window.addEventListener('pagehide',kodiDisconnect);
+
+let exportIndex=null;
+function setWorkflow(which){
+ const isManual=which==='manual',isExport=which==='export',isKodi=which==='kodi',isSagas=which==='sagas',isTokens=which==='tokens';
+ $('#tokenWorkflow').classList.toggle('hide',!isTokens);
+ $('#kodiWorkflow').classList.toggle('hide',!isKodi);
+ $('#manualWorkflow').classList.toggle('hide',!isManual);
+ $('#exportWorkflow').classList.toggle('hide',!isExport);
+ $('#sagaWorkflow').classList.toggle('hide',!isSagas);
+ for(const [id,active] of [['workflowManual',isManual],['workflowExport',isExport],['workflowKodi',isKodi],['workflowSagas',isSagas],['workflowTokens',isTokens]]){
+  $('#'+id).classList.toggle('alt',!active);
+  $('#'+id).setAttribute('aria-pressed',String(active));
+ }
+ const hints={manual:'Parcours manuel sélectionné. Les jetons GitHub et TMDB doivent être renseignés dans « Gestion des jetons » avant de modifier la vidéothèque.',export:'Parcours export sélectionné. Aucun identifiant ni connexion à Trakt ou Letterboxd n’est nécessaire.',kodi:'Comparaison Kodi sélectionnée. Connexion locale en lecture seule ; aucun jeton GitHub ou TMDB requis.',sagas:'Gestion du cache de données sélectionnée. Les jetons GitHub et TMDB doivent être renseignés dans « Gestion des jetons » avant l’actualisation.',tokens:'Gestion des jetons sélectionnée. Tu peux enregistrer les jetons indépendamment de toute opération sur les films.'};
+ $('#workflowHint').textContent=hints[which]||'Sélectionne un parcours pour afficher uniquement les outils correspondants.';
+ if(isExport)loadExportIndex();
+}
+function csvCell(value){const s=String(value??'');return '"'+s.replace(/"/g,'""')+'"'}
+function csvText(rows){return '\uFEFF'+rows.map(row=>row.map(csvCell).join(',')).join('\r\n')+'\r\n'}
+function exportableFilms(){
+ if(!exportIndex||!Array.isArray(exportIndex.films))throw new Error('Index de vidéothèque indisponible.');
+ return exportIndex.films.filter(f=>/^t(\d+)/.test(f.id||'')&&/^\d{4}-\d{2}-\d{2}$/.test(f.w||''))
+  .sort((a,b)=>b.w.localeCompare(a.w)||(a.t||'').localeCompare(b.t||''));
+}
+async function loadExportIndex(){
+ const status=$('#exportAvailable');status.textContent='Lecture de ta vidéothèque…';
+ $('#exportTraktCsv').disabled=true;$('#exportLetterboxdCsv').disabled=true;
+ try{
+  const r=await fetch(PUBLISHED+'data/index.json?ts='+Date.now(),{cache:'no-store'});
+  if(!r.ok)throw new Error('Impossible de lire la vidéothèque ('+r.status+').');
+  exportIndex=await r.json();const films=exportableFilms();
+  status.textContent=films.length+' films avec une date de visionnage peuvent être exportés, triés du plus récent au plus ancien. '+(exportIndex.films.length-films.length)+' film(s) sans date sont ignorés.';
+  $('#exportTraktCsv').disabled=false;$('#exportLetterboxdCsv').disabled=false;
+ }catch(e){status.textContent=e.message;status.className='mute bad'}
+}
+function selectedExportFilms(){
+ const n=Number($('#exportLimit').value);
+ if(!Number.isInteger(n)||n<1)throw new Error('Indique un nombre de films supérieur à zéro.');
+ const all=exportableFilms();
+ return all.slice(0,Math.min(n,all.length));
+}
+function downloadCsv(platform){
+ try{
+  const films=selectedExportFilms();
+  if(!films.length)throw new Error('Aucun film à exporter.');
+  let rows,name;
+  if(platform==='trakt'){
+   rows=[['tmdb_id','watched_at','rating','rated_at'],...films.map(f=>{
+    const tmdbId=(f.id.match(/^t(\d+)/)||[])[1],watchedAt=f.w+'T12:00:00Z',rating=Number(f.r);
+    return [tmdbId,watchedAt,Number.isInteger(rating)&&rating>=1&&rating<=10?rating:'',Number.isInteger(rating)&&rating>=1&&rating<=10?watchedAt:''];
+   })];
+   name='mavideotheque-trakt-'+films.length+'-films.csv';
+  }else{
+   rows=[['tmdbID','Title','Year','Rating10','WatchedDate'],...films.map(f=>{
+    const tmdbId=(f.id.match(/^t(\d+)/)||[])[1],rating=Number(f.r);
+    return [tmdbId,f.t,f.y||'',Number.isInteger(rating)&&rating>=1&&rating<=10?rating:'',f.w];
+   })];
+   name='mavideotheque-letterboxd-'+films.length+'-films.csv';
+  }
+  saveBlob(new Blob([csvText(rows)],{type:'text/csv;charset=utf-8'}),name);
+  const box=$('#externalExportStatus');box.classList.remove('hide');box.className='status good';
+  box.textContent=films.length+' film(s) exporté(s), du '+films[0].w+' au '+films[films.length-1].w+'.'+(films.length<Number($('#exportLimit').value)?' La collection contient moins de films exportables que le nombre demandé.':'');
+ }catch(e){const box=$('#externalExportStatus');box.classList.remove('hide');box.className='status bad';box.textContent=e.message}
+}
+$('#workflowManual').onclick=()=>setWorkflow('manual');
+$('#workflowExport').onclick=()=>setWorkflow('export');
+$('#exportTraktCsv').onclick=()=>downloadCsv('trakt');
+$('#exportLetterboxdCsv').onclick=()=>downloadCsv('letterboxd');
+$('#modeAdd').onclick=()=>setMode('add');$('#modeEdit').onclick=()=>setMode('edit');$('#localSearch').onclick=searchLocal;$('#localQuery').addEventListener('keydown',e=>{if(e.key==='Enter')searchLocal()});
+$('#token').addEventListener('change',()=>saveToken($('#token').value.trim()));$('#token').addEventListener('blur',()=>{if($('#token').value.trim()!==KEY)saveToken($('#token').value.trim())});$('#rememberTmdbToken').addEventListener('change',()=>saveToken($('#token').value.trim()||KEY));$('#clearToken').onclick=()=>{$('#token').value='';KEY='';storageSet(TMDB_STORAGE_KEY,'');$('#rememberTmdbToken').checked=false;$('#tokenState').textContent='Jeton TMDB effacé, y compris toute sauvegarde locale.'};$('#githubToken').addEventListener('change',()=>saveGithubToken($('#githubToken').value.trim()));$('#githubToken').addEventListener('blur',()=>{if($('#githubToken').value.trim()!==GITHUB_KEY)saveGithubToken($('#githubToken').value.trim())});$('#rememberGithubToken').addEventListener('change',()=>saveGithubToken($('#githubToken').value.trim()||GITHUB_KEY));$('#clearGithubToken').onclick=()=>{$('#githubToken').value='';GITHUB_KEY='';storageSet(GITHUB_STORAGE_KEY,'');$('#rememberGithubToken').checked=false;$('#githubTokenState').textContent='Jeton GitHub effacé, y compris la sauvegarde locale.'};$('#deleteSavedGithubToken').onclick=()=>{storageSet(GITHUB_STORAGE_KEY,'');$('#rememberGithubToken').checked=false;$('#githubTokenState').textContent=GITHUB_KEY?'Jeton sauvegardé supprimé ; le jeton reste utilisable en mémoire jusqu’à la fermeture de l’onglet.':'Jeton GitHub sauvegardé supprimé.'};$('#publish').onclick=publishGitHub;$('#refreshAllSagas').onclick=refreshAllSagas;$('#refreshMovieData').onclick=refreshMissingMovieData;$('#search').onclick=searchMovies;$('#query').addEventListener('keydown',e=>{if(e.key==='Enter')searchMovies()});$('#add').onclick=addSelected;$('#cancel').onclick=()=>{$('#selection').classList.add('hide');selected=null};$('#export').onclick=exportZip;$('#clearQueue').onclick=()=>{queue=[];renderQueue();$('#exportStatus').classList.add('hide')};
+restoreTokens();setMode('add')
+$('#watched').value=today();renderQueue();
+$('#quickToday').onclick=()=>{$('#quickWatched').value=today();};
+$('#quickEditDialog').addEventListener('close',()=>{if(quickEditId)location.href=PUBLISHED+'#film/'+encodeURIComponent(quickEditId)});\n$('#quickClose').onclick=()=>$('#quickEditDialog').close();
+$('#quickSave').onclick=saveQuickEdit;
+const editId=new URLSearchParams(location.search).get('edit');
+if(editId){if(KEY&&GITHUB_KEY){openQuickEdit(editId)}else{setWorkflow('manual');setMode('edit');loadLocalFilm(editId)}}
+</script>
+</body>
+</html>

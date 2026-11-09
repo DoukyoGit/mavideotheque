@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https://image.tmdb.org; connect-src 'self' https://api.themoviedb.org; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; base-uri 'self'; object-src 'none'; form-action 'self'">
+<meta name="googlebot" content="noindex,nofollow,noarchive,nosnippet">
+<title>Accueil</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%9E%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<style>
+:root{--bg:#f3f0ea;--panel:#fff;--ink:#1d1b18;--mute:#6b665e;--line:#ddd7cc;--acc:#b3261e;--accink:#fff;--shadow:0 8px 24px rgba(0,0,0,.14);
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1115;--panel:#181b21;--ink:#ece8e1;--mute:#9a958b;--line:#2a2e36;--acc:#e5534b;--accink:#180a09;--shadow:0 8px 24px rgba(0,0,0,.5)}}
+:root[data-theme="dark"]{--bg:#0f1115;--panel:#181b21;--ink:#ece8e1;--mute:#9a958b;--line:#2a2e36;--acc:#e5534b;--accink:#180a09;--shadow:0 8px 24px rgba(0,0,0,.5)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 14px}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;max-width:1400px;margin:0 auto}
+.bar+.bar{margin-top:8px}
+.brandbar{justify-content:space-between;flex-wrap:nowrap}.head-actions{display:flex;align-items:center;gap:8px}.icon-btn{width:38px;height:38px;min-width:38px;padding:0;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}.add-btn{min-width:38px;text-align:center;text-decoration:none;font-size:1.25rem;line-height:1;padding:7px 10px}
+h1{font:600 1.5rem/1.1 Georgia,"Times New Roman",serif;margin:0;letter-spacing:-.01em}
+.mute{color:var(--mute);font-size:.88rem}.hide{display:none!important}
+input,select,button{font:inherit;color:var(--ink)}
+input,select{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+input[type=search]{flex:1 1 200px}
+.btn{background:var(--acc);color:var(--accink);border:1px solid var(--acc);border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer}
+.btn.alt{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn:disabled{opacity:.5;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+#filters{max-width:1400px;margin:10px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;align-items:end}
+#filters label{display:flex;flex-direction:column;gap:3px;font-size:.8rem;color:var(--mute)}
+#filters .two{display:flex;gap:6px}#filters .two input{width:100%}
+#filters #q{flex:none;width:100%;min-width:0;height:auto;min-height:0;padding:8px 10px;line-height:normal;box-sizing:border-box}
+main{max-width:1400px;margin:0 auto;padding:16px 14px 40px}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:18px 14px}
+.card{display:flex;flex-direction:column;gap:6px;min-width:0}
+.poster{position:relative;aspect-ratio:2/3;border-radius:8px;overflow:hidden;background:var(--panel);border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.12);transition:transform .15s,box-shadow .15s}
+.card:hover .poster{transform:translateY(-3px);box-shadow:var(--shadow)}
+.poster img{width:100%;height:100%;object-fit:cover;display:block}
+.noimg{display:grid;place-items:center;height:100%;font:600 2rem Georgia,serif;color:var(--mute)}
+.badge{position:absolute;top:6px;right:6px;color:#fff;font-weight:700;font-size:.82rem;border-radius:6px;padding:2px 7px;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.badge.rg{background:#1e7a3c}.badge.ro{background:#b45309}.badge.rr{background:#c62828}
+.badge.tmdb{left:6px;right:auto;background:#666;color:#fff}
+.poster-date{position:absolute;left:0;right:0;bottom:0;padding:14px 6px 5px;background:linear-gradient(transparent,rgba(0,0,0,.78));color:#fff;font-size:.72rem;font-weight:600;text-shadow:0 1px 2px rgba(0,0,0,.7);text-align:left;pointer-events:none}
+
+.card h2{font-size:.95rem;line-height:1.25;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card .meta{font-size:.8rem;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#status{padding:30px 0;text-align:center;color:var(--mute)}
+#more{display:block;margin:26px auto 0}
+
+
+
+
+
+@media (max-width:520px){#grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:14px 10px}}
+
+
+body.indetail header,body.indetail main{display:none}
+a.card{color:inherit;text-decoration:none}
+#detail{max-width:1100px;margin:0 auto;padding:0 14px 50px}
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);padding:10px 0;display:flex;gap:8px;align-items:center}
+.hero{position:relative;margin:0 -14px;padding:26px 14px 18px;background:linear-gradient(180deg,color-mix(in srgb,var(--bg) 62%,transparent),var(--bg) 96%),var(--bd) center top/cover no-repeat}
+.hero-in{display:flex;gap:22px;align-items:flex-end;flex-wrap:wrap}
+.dposter{width:220px;max-width:42vw;border-radius:10px;box-shadow:var(--shadow);aspect-ratio:2/3;object-fit:cover;background:var(--panel)}
+.dinfo{flex:1 1 320px;min-width:0}
+.dinfo h1{font:600 clamp(1.6rem,4vw,2.5rem)/1.1 Georgia,serif;margin:0 0 4px}
+.orig{color:var(--mute);margin:0 0 6px}.tag{font-style:italic;color:var(--mute);margin:0 0 10px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:2px 10px;font-size:.82rem}
+.scorebox{display:flex;flex-wrap:wrap;align-items:center;gap:14px 26px;width:fit-content;max-width:100%;margin-top:14px;padding:12px 18px;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.score{display:flex;align-items:center;gap:12px;min-width:0}
+.score-badge{flex:none;min-width:62px;padding:8px 12px;border-radius:12px;color:#fff;font-weight:700;font-size:1.7rem;line-height:1;text-align:center;font-variant-numeric:tabular-nums}
+.score-badge small{margin-left:1px;font-size:.5em;font-weight:600;opacity:.82}
+.score-badge.rg{background:#1e7a3c}.score-badge.ro{background:#b45309}.score-badge.rr{background:#c62828}
+.score-pill{flex:none;padding:5px 11px;border:1.5px solid var(--line);border-radius:10px;font-size:1.05rem;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.score-pill small{margin-left:1px;font-size:.65em;font-weight:600;color:var(--mute)}
+.score-text{display:flex;flex-direction:column;gap:3px;min-width:0}
+.score-label{font-size:.78rem;font-weight:600;letter-spacing:.03em;color:var(--mute)}
+.score-sub{display:inline-flex;align-items:center;gap:6px;font-size:.92rem;color:var(--ink)}
+.score-sub svg{width:15px;height:15px;flex:none;color:var(--mute)}
+#detail h2{font:600 1.25rem Georgia,serif;margin:28px 0 10px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+dl.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0}
+dl.kv dt{color:var(--mute)}dl.kv dd{margin:0}
+.strip{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
+.pcard{position:relative;flex:0 0 110px;font-size:.8rem;color:inherit;text-decoration:none}
+.pcard .badge.tmdb{top:6px;left:6px;right:auto}
+.pcard img,.pcard .ph{width:110px;aspect-ratio:2/3;object-fit:cover;border-radius:8px;background:var(--panel);border:1px solid var(--line);display:block}
+.pcard .ph.noimg{height:auto;font-size:1.1rem}
+.pcard b{display:block;margin-top:4px;line-height:1.2}.pcard span{color:var(--mute);display:block}
+.inlib{color:var(--acc)!important;font-size:.72rem}
+
+
+
+
+
+.gal{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px}.gal img{height:130px;border-radius:6px;display:block}
+details{margin:8px 0}summary{cursor:pointer;color:var(--mute)}
+.review{border-left:3px solid var(--line);padding:2px 12px;margin:10px 0;white-space:pre-line}
+
+#detail a{color:var(--acc)}#detail a.pcard{color:inherit}
+.saga-summary{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;margin:14px 0}
+.saga-poster{width:150px;max-width:34vw;aspect-ratio:2/3;object-fit:cover;border-radius:8px;background:var(--panel);box-shadow:var(--shadow)}
+.saga-description{flex:1 1 260px;min-width:0}
+.saga-stats{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.saga-grid{display:flex;flex-direction:column;gap:0}
+.saga-row{display:grid;grid-template-columns:116px minmax(0,1fr);gap:16px;align-items:start;padding:14px 0;border-bottom:1px solid var(--line);color:inherit;text-decoration:none}
+.saga-row:first-child{padding-top:4px}
+.saga-row .saga-cover{position:relative;width:116px;aspect-ratio:2/3;border-radius:8px;overflow:hidden;background:var(--panel);border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.saga-row .saga-cover img{display:block;width:100%;height:100%;object-fit:cover}
+.saga-row .saga-cover .noimg{height:100%;font-size:1.5rem}
+.saga-row .saga-ratings{position:absolute;top:6px;left:6px;right:6px;display:flex;justify-content:space-between;gap:4px;align-items:flex-start}
+.saga-row .saga-ratings .badge{position:static;display:inline-block;font-size:.75rem;padding:2px 6px}
+.saga-row .saga-ratings .badge.hide{display:none}
+.saga-row .poster-date{font-size:.68rem}
+.saga-row .saga-info{min-width:0;padding:2px 0}
+.saga-row h3{font-size:1.08rem;line-height:1.25;margin:0 0 5px}
+.saga-row .saga-release{font-size:.82rem;color:var(--mute);margin-bottom:9px}
+.saga-row .saga-overview{margin:0;font-size:.9rem;line-height:1.5;white-space:pre-line;color:var(--ink)}
+.saga-row:hover h3{text-decoration:underline}
+@media (max-width:520px){.saga-row{grid-template-columns:92px minmax(0,1fr);gap:12px;padding:12px 0}.saga-row .saga-cover{width:92px}.saga-row h3{font-size:1rem}.saga-row .saga-overview{font-size:.84rem;line-height:1.4}}
+
+
+#stats{max-width:1100px;margin:0 auto;padding:0 14px 50px}
+#stats h1{font:600 clamp(1.6rem,4vw,2.2rem)/1.1 Georgia,serif;margin:6px 0 4px}
+#stats h2{font:600 1.2rem Georgia,serif;margin:30px 0 10px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.kpi b{display:block;font:600 1.6rem/1.1 Georgia,serif}.kpi span{color:var(--mute);font-size:.82rem}
+.tabs{display:flex;gap:6px;margin:0 0 10px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:4px 12px;cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:var(--accink)}
+.vb{display:flex;align-items:flex-end;gap:6px;height:190px;overflow-x:auto;padding-top:18px}
+.vcol{flex:1 0 34px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:.75rem}
+.vcol .vv{color:var(--mute);margin-bottom:2px}.vcol .bar{width:100%;max-width:46px;border-radius:4px 4px 0 0;min-height:2px;background:var(--acc)}
+.vcol .vl{margin-top:4px;color:var(--mute);white-space:nowrap}
+.c-g{background:#1e7a3c!important}.c-o{background:#b45309!important}.c-r{background:#c62828!important}
+.hrow{display:grid;grid-template-columns:minmax(90px,200px) 1fr auto;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:0;padding:4px 0;cursor:pointer;color:inherit;font:inherit}
+.hrow:hover .hl{text-decoration:underline}.hrow.static{cursor:default}.hrow.static:hover .hl{text-decoration:none}
+.hl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hb{height:12px;background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden}.hb i{display:block;height:100%;background:var(--acc)}
+.hv{font-variant-numeric:tabular-nums;min-width:74px;text-align:right}.hv small{color:var(--mute)}
+.two-col{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:0 28px}
+
+.reclist{list-style:none;padding:0;margin:0}.reclist li{padding:5px 0;border-bottom:1px solid var(--line)}
+#stats code{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:.85em}
+/* ---------- verrouillage d'accès ---------- */
+body:not(.unlocked)>header,body:not(.unlocked)>main,body:not(.unlocked)>#detail,body:not(.unlocked)>#stats{visibility:hidden!important}
+#accessGate{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:24px;background:var(--bg)}
+#accessGate .gate-card{width:min(100%,380px);padding:28px;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);text-align:center}
+#accessGate h1{margin:0 0 8px;font-size:1.7rem}#accessGate p{color:var(--mute);margin:0 0 18px}
+#accessGate form{display:grid;gap:10px}#accessGate input{width:100%;padding:12px}
+#accessError{min-height:1.3em;color:var(--acc);font-size:.88rem}body.unlocked #accessGate{display:none}
+</style>
+</head>
+<body>
+<div id="accessGate" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+  <div class="gate-card"><h1 id="gateTitle">Ma vidéothèque</h1>
+    <p>Ce site est privé. Saisis le mot de passe pour continuer.</p>
+    <form id="accessForm"><input id="accessPassword" type="password" autocomplete="current-password" placeholder="Mot de passe" aria-label="Mot de passe" required autofocus>
+      <button class="btn" type="submit">Accéder au site</button><div id="accessError" role="alert"></div>
+    </form></div></div>
+<script>(()=>{
+  let resolveAccess;window.__accessReady=new Promise(resolve=>{resolveAccess=resolve});
+  try{if(sessionStorage.getItem('mavideotheque-unlocked')==='1'){document.body.classList.add('unlocked');resolveAccess()}}catch(e){}
+  const form=document.getElementById('accessForm'),field=document.getElementById('accessPassword'),error=document.getElementById('accessError');
+  const salt='mavideotheque-gate-v1',expected='a97e6deed5a34b21603e85372e5748e2eca73f1439c84c747422c6e4ff4454ee';
+  form.addEventListener('submit',async e=>{e.preventDefault();error.textContent='';
+    try{const data=new TextEncoder().encode(salt+':'+field.value),digest=await crypto.subtle.digest('SHA-256',data);
+      const actual=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');
+      if(actual===expected){try{sessionStorage.setItem('mavideotheque-unlocked','1')}catch(e){}document.body.classList.add('unlocked');resolveAccess();field.value=''}
+      else{error.textContent='Mot de passe incorrect.';field.select()}
+    }catch(e){error.textContent='Vérification impossible. Utilise un navigateur récent.'}
+  });})();</script>
+<header>
+  <div class="bar brandbar">
+    <h1>Ma vidéothèque</h1><div class="head-actions"><button class="btn alt icon-btn" id="lockSite" type="button" aria-label="Verrouiller le site" title="Verrouiller le site"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></button><a class="btn alt icon-btn" href="#stats" aria-label="Statistiques" title="Statistiques"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5M4 19h17"/><rect x="7" y="11" width="3" height="6" rx=".5"/><rect x="13" y="7" width="3" height="10" rx=".5"/><rect x="19" y="4" width="2" height="13" rx=".5"/></svg></a><a class="btn alt add-btn" href="tools.html" aria-label="Ajouter un film" title="Ajouter un film">+</a></div>
+  </div>
+  <div class="bar">
+    <select id="sort" aria-label="Trier par">
+      <option value="w">Date de visionnage</option><option value="r">Note</option>
+      <option value="t">Titre</option><option value="m">Durée</option><option value="d">Réalisateur</option>
+    </select>
+    <button id="dirb" class="btn alt" type="button" aria-label="Inverser l’ordre du tri">↓</button>
+    <button id="fbtn" class="btn alt icon-btn" type="button" aria-label="Filtres" title="Filtres" aria-expanded="false"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M7 12h10m-7 6h4"/><circle cx="9" cy="6" r="1.5" fill="currentColor"/><circle cx="15" cy="12" r="1.5" fill="currentColor"/></svg></button>
+  </div>
+  <div id="filters" class="hide">
+    <label>Titre ou réalisateur<input id="q" type="search" placeholder="Rechercher…" aria-label="Titre ou réalisateur"></label>
+    <label>Note<span class="two"><input id="rmin" type="number" min="0" max="10" step="0.5" placeholder="min"><input id="rmax" type="number" min="0" max="10" step="0.5" placeholder="max"></span></label>
+    <label>Durée (minutes)<span class="two"><input id="mmin" type="number" min="0" placeholder="min"><input id="mmax" type="number" min="0" placeholder="max"></span></label>
+    <label>Vu entre<span class="two"><input id="dfrom" type="date"><input id="dto" type="date"></span></label>
+    <input id="dsel" type="hidden">
+    <label>Genre<select id="gsel"><option value="">Tous</option></select></label>
+    <button id="reset" class="btn alt" type="button">Réinitialiser</button>
+  </div>
+</header>
+
+<main>
+  <div id="status">Chargement…</div>
+  <div id="grid"></div>
+  <button id="more" class="btn alt hide" type="button">Afficher plus</button>
+</main>
+<section id="detail" class="hide" aria-live="polite"></section>
+<section id="stats" class="hide"></section>
+
+<script>
+const $=s=>document.querySelector(s);
+$('#lockSite').addEventListener('click',()=>{try{sessionStorage.removeItem('mavideotheque-unlocked')}catch(e){}document.body.classList.remove('unlocked');location.hash='';$('#accessPassword').value='';$('#accessError').textContent='';$('#accessPassword').focus()});
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+let ALL=[],view=[],shown=120,dir=-1;
+const PAGE=120;
+
+/* ---------- affichage ---------- */
+const fmtR=r=>r==null?'–':(Number.isInteger(r)?String(r):r.toFixed(1).replace('.',','));
+const fmtM=m=>m?`${Math.floor(m/60)} h ${String(m%60).padStart(2,'0')}`:'';
+const fmtD=d=>d?new Date(d+'T00:00:00').toLocaleDateString('fr-FR'):'';
+const tmdbRatings=new Map(),tmdbPending=new Set();
+let ratingObserver;
+function card(f){
+  const img=f.p?`<img loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342${f.p}" alt="">`:`<div class="noimg">${esc((f.t||'?').slice(0,2))}</div>`;
+  const meta=[f.y,fmtM(f.m)].filter(Boolean).join(' · ');
+  const rating=tmdbRatings.get(f.id);
+  return `<a class="card" href="#film/${esc(f.id)}"><div class="poster">${img}
+    <span class="badge tmdb${rating==null?' hide':''}" data-tmdb-rating="${esc(f.id)}" title="Note moyenne TMDB">${rating==null?'':fmtR(rating)}</span>
+    ${f.r!=null?`<span class="badge ${f.r>=7?'rg':f.r>=5?'ro':'rr'}" title="Ma note : ${fmtR(f.r)} / 10">${fmtR(f.r)}</span>`:''}
+    ${f.w?`<span class="poster-date">Vu le ${fmtD(f.w)}</span>`:''}
+  </div><h2>${esc(f.t)}</h2><div class="meta">${esc(meta)}</div><div class="meta">${esc((f.d||[]).join(', '))}</div></a>`;
+}
+async function loadCardRating(id){
+  if(tmdbRatings.has(id)||tmdbPending.has(id))return;
+  tmdbPending.add(id);
+  try{
+    const r=await fetch(`data/films/${encodeURIComponent(id)}.json`,{cache:'no-cache'});
+    if(!r.ok)return;
+    const f=await r.json(),v=f.tmdb&&f.tmdb.voteAverage;
+    if(v!=null&&Number.isFinite(Number(v)))tmdbRatings.set(id,Number(v));
+    const el=document.querySelector(`[data-tmdb-rating="${CSS.escape(id)}"]`);
+    if(el&&tmdbRatings.has(id)){el.textContent=fmtR(tmdbRatings.get(id));el.classList.remove('hide')}
+  }catch(e){/* La note reste absente si la fiche ne peut pas être chargée. */}
+  finally{tmdbPending.delete(id)}
+}
+function observeCardRatings(){
+  if(!('IntersectionObserver' in window)){
+    document.querySelectorAll('[data-tmdb-rating]').forEach(el=>loadCardRating(el.dataset.tmdbRating));
+    return;
+  }
+  if(ratingObserver)ratingObserver.disconnect();
+  ratingObserver=new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        ratingObserver.unobserve(entry.target);
+        loadCardRating(entry.target.dataset.tmdbRating);
+      }
+    });
+  },{rootMargin:'180px'});
+  document.querySelectorAll('[data-tmdb-rating]').forEach(el=>{
+    const rating=tmdbRatings.get(el.dataset.tmdbRating);
+    if(rating!=null){el.textContent=fmtR(rating);el.classList.remove('hide')}
+    else ratingObserver.observe(el);
+  });
+}
+function render(){
+  $('#grid').innerHTML=view.slice(0,shown).map(card).join('');
+  observeCardRatings();
+  $('#more').classList.toggle('hide',shown>=view.length);
+  if(ALL.length){
+    $('#status').classList.toggle('hide',view.length>0);
+    if(!view.length)$('#status').textContent='Aucun film ne correspond à ces filtres.';
+  }
+}
+
+/* ---------- tri et filtres ---------- */
+const keyf={w:f=>f.w,r:f=>f.r,t:f=>f.t,m:f=>f.m,d:f=>(f.d&&f.d[0])||''};
+const num=id=>{const v=$(id).value;return v===''?null:parseFloat(v)};
+function apply(){
+  const q=norm($('#q').value.trim()),d=norm($('#dsel').value.trim()),g=$('#gsel').value;
+  const rmin=num('#rmin'),rmax=num('#rmax'),mmin=num('#mmin'),mmax=num('#mmax'),a=$('#dfrom').value,b=$('#dto').value;
+  view=ALL.filter(f=>{
+    if(q&&!norm(f.t+' '+(f.o||'')+' '+(f.d||[]).join(' ')).includes(q))return false;
+    if(d&&!(f.d||[]).some(x=>norm(x).includes(d)))return false;
+    if(g&&!(f.g||[]).includes(g))return false;
+    if(rmin!=null&&(f.r==null||f.r<rmin))return false;
+    if(rmax!=null&&(f.r==null||f.r>rmax))return false;
+    if(mmin!=null&&(!f.m||f.m<mmin))return false;
+    if(mmax!=null&&(!f.m||f.m>mmax))return false;
+    if(a&&(!f.w||f.w<a))return false;
+    if(b&&(!f.w||f.w>b))return false;
+    return true;
+  });
+  const k=keyf[$('#sort').value];
+  view.sort((x,y)=>{
+    const u=k(x),v=k(y),nu=u==null||u==='',nv=v==null||v==='';
+    if(nu&&nv)return 0;if(nu)return 1;if(nv)return -1;
+    return (typeof u==='string'?u.localeCompare(v,'fr',{sensitivity:'base'}):u-v)*dir;
+  });
+  shown=PAGE;render();
+}
+let tm;const deb=()=>{clearTimeout(tm);tm=setTimeout(apply,150)};
+document.querySelectorAll('header input,header select').forEach(el=>el.addEventListener('input',deb));
+$('#sort').addEventListener('change',()=>{dir=['t','d'].includes($('#sort').value)?1:-1;$('#dirb').textContent=dir<0?'↓':'↑';apply()});
+$('#dirb').onclick=()=>{dir=-dir;$('#dirb').textContent=dir<0?'↓':'↑';apply()};
+$('#fbtn').onclick=()=>{const h=$('#filters').classList.toggle('hide');$('#fbtn').setAttribute('aria-expanded',String(!h))};
+$('#reset').onclick=()=>{document.querySelectorAll('#filters input,#filters select,#q').forEach(e=>e.value='');apply()};
+$('#more').onclick=()=>{shown+=PAGE;render()};
+
+function build(films){
+  ALL=films;
+  const gs=[...new Set(ALL.flatMap(f=>f.g||[]))].sort((a,b)=>a.localeCompare(b,'fr')),cur=$('#gsel').value;
+  $('#gsel').innerHTML='<option value="">Tous</option>'+gs.map(x=>`<option>${esc(x)}</option>`).join('');
+  $('#gsel').value=cur;
+  if(!ALL.length){$('#status').classList.remove('hide');$('#status').textContent='Aucun film pour l’instant.'}
+  apply();
+}
+
+/* ---------- page de détail ---------- */
+const IMG='https://image.tmdb.org/t/p/';
+const fmtLong=d=>d?new Date(d+'T00:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}):'';
+const money=n=>n?new Intl.NumberFormat('fr-FR',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n):'';
+const rcls=r=>r>=7?'rg':r>=5?'ro':'rr';
+const names=a=>(a||[]).filter(Boolean).map(esc).join(', ');
+let gridScroll=0;
+function pcard(href,img,title,sub,ext,badge,rating){
+  return `<a class="pcard" href="${esc(href)}"${ext?' target="_blank" rel="noopener"':''}>${img?`<img loading="lazy" src="${img}" alt="">`:`<div class="ph noimg">${esc((title||'?').slice(0,2))}</div>`}${rating!=null?`<span class="badge tmdb" title="Note moyenne TMDB">${fmtR(Number(rating))}</span>`:''}<b>${esc(title)}</b>${sub?`<span>${esc(sub)}</span>`:''}${badge?'<span class="inlib">Dans ma vidéothèque</span>':''}</a>`;
+}
+function detailHTML(f){
+  const t=f.tmdb||{},x=f.extra||{},c=f.csv||{},lib=new Set(ALL.map(a=>a.id));
+  const title=t.title||c.title,rate=c.rating;
+  const cast=(x.credits&&x.credits.cast&&x.credits.cast.length)?x.credits.cast:(t.cast||[]).map(a=>({id:a.id,name:a.name,character:a.character,profile_path:a.profilePath}));
+  const kv=(k,v)=>v?`<dt>${k}</dt><dd>${v}</dd>`:'';
+  const money1=[t.budget?`Budget : ${money(t.budget)}`:'',t.revenue?`Recettes : ${money(t.revenue)}`:''].filter(Boolean).join(' · ');
+  const seen=new Set([t.tmdbId]),sim=[];
+  [...(x.recommendations||[]),...(x.similar||[])].forEach(m=>{if(!seen.has(m.id)){seen.add(m.id);sim.push(m)}});
+  const crew=(x.credits&&x.credits.crew)||[];
+  const crewNames=a=>(a||[]).filter(Boolean).map(name=>{const person=crew.find(p=>p.name===name&&p.id!=null);return person?`<a href="https://www.themoviedb.org/person/${encodeURIComponent(person.id)}" target="_blank" rel="noopener noreferrer">${esc(name)}</a>`:esc(name)}).join(', ');
+  const crewBy={};crew.forEach(p=>{(crewBy[p.department]=crewBy[p.department]||new Map()).set(p.job,[...(crewBy[p.department].get(p.job)||[]),p.name])});
+  const bd=t.backdropPath?`style="--bd:url(${IMG}w1280${t.backdropPath})"`:'';
+  const fmtV=n=>Number(n).toLocaleString('fr-FR');
+  const scoreHTML=(()=>{
+    const cal='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>';
+    const mine=(rate!=null||c.watchedDate)?`<div class="score">${rate!=null?`<span class="score-badge ${rcls(rate)}" title="Ma note : ${fmtR(rate)} sur 10">${fmtR(rate)}<small>/10</small></span>`:''}<div class="score-text"><span class="score-label">${rate!=null?'Ma note':'Mon visionnage'}</span>${c.watchedDate?`<span class="score-sub">${cal}Vu le ${fmtD(c.watchedDate)}</span>`:''}</div></div>`:'';
+    const avg=Number(t.voteAverage),n=Number(t.voteCount);
+    const tmdb=avg>0?`<div class="score"><span class="score-pill" title="Note moyenne TMDB : ${fmtR(avg)} sur 10">${fmtR(avg)}<small>/10</small></span><div class="score-text"><span class="score-label">TMDB</span>${n>0?`<span class="score-sub">${fmtV(n)} vote${n>1?'s':''}</span>`:''}</div></div>`:'';
+    return mine||tmdb?`<div class="scorebox" role="group" aria-label="Notes et visionnage">${mine}${tmdb}</div>`:'';
+  })();
+  return `<div class="topbar"><button class="btn alt" id="back" type="button">← Ma vidéothèque</button><a class="btn alt" href="tools.html?edit=${encodeURIComponent(f.id)}">Modifier</a></div>
+  <div class="hero" ${bd}><div class="hero-in">
+    ${t.posterPath?`<img class="dposter" src="${IMG}w500${t.posterPath}" alt="Affiche de ${esc(title)}">`:''}
+    <div class='dinfo'><h1>${esc(title)}</h1>${t.tmdbId?`<p class='mute'><a href='https://www.themoviedb.org/movie/${encodeURIComponent(t.tmdbId)}' target='_blank' rel='noopener noreferrer'>Voir la fiche du film sur TMDB</a></p>`:""}
+      ${t.originalTitle&&t.originalTitle!==title?`<p class="orig">${esc(t.originalTitle)}</p>`:''}
+      ${t.tagline?`<p class="tag">${esc(t.tagline)}</p>`:''}
+      <div class="chips">${[t.releaseDate&&t.releaseDate.slice(0,4),fmtM(t.runtime),t.certificationFR].filter(Boolean).map(v=>`<span class="chip">${esc(v)}</span>`).join('')}${(t.genres||[]).map((g,i)=>{const id=(t.genreIds||[])[i];return id?`<a class='chip' href='https://www.themoviedb.org/genre/${encodeURIComponent(id)}-${norm(g).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}/movie' target='_blank' rel='noopener noreferrer' title='Voir les films de ce genre sur TMDB'>${esc(g)}</a>`:`<span class='chip'>${esc(g)}</span>`}).join("")}</div>
+      ${scoreHTML}
+      </div></div></div>
+  ${t.overview?`<h2>Synopsis</h2><p>${esc(t.overview)}</p>${t.overviewLang==='en'?'<p class="mute">Synopsis non disponible en français.</p>':''}`:''}
+  <div class="cols"><div><h2>Équipe</h2><dl class="kv">${kv('Réalisation',crewNames(t.directors))}${kv('Scénario',crewNames(t.writers))}${kv('Musique',crewNames(t.composers))}${kv('Photographie',crewNames(t.cinematographers))}${kv('Montage',crewNames(t.editors))}${kv('Production',crewNames(t.producers))}</dl></div>
+  <div><h2>Informations</h2><dl class="kv">${kv('Sortie',fmtLong(t.releaseDate))}${kv('Pays',names(t.countries))}${kv('Langues',names(t.languages))}${kv('Studios',names((t.companies||[]).slice(0,6)))}${kv('Saga',(t.collection||{}).id?'<a href="#saga/'+encodeURIComponent(t.collection.id)+'">'+esc((t.collection||{}).name||'Voir la saga')+'</a>':esc((t.collection||{}).name||''))}${kv('Chiffres',esc(money1))}</dl></div></div>
+  ${cast.length?`<h2>Distribution</h2><div class="strip">${cast.slice(0,20).map(a=>pcard('https://www.themoviedb.org/person/'+a.id,a.profile_path?IMG+'w185'+a.profile_path:null,a.name,a.character,true)).join('')}</div>
+    ${cast.length>20?`<details><summary>Distribution complète (${cast.length})</summary>${cast.map(a=>`<span>${a.id!=null?`<a href='https://www.themoviedb.org/person/${encodeURIComponent(a.id)}' target='_blank' rel='noopener noreferrer'>${esc(a.name)}</a>`:esc(a.name)}${a.character?` <span class='mute'>(${esc(a.character)})</span>`:""}</span>`).join("<br>")}</details>`:""}`:""}
+  ${Object.keys(crewBy).length?`<details><summary>Équipe technique complète</summary>${Object.keys(crewBy).sort().map(d=>`<p><b>${esc(d)}</b><br>${[...crewBy[d]].map(([j,n])=>`<span class="mute">${esc(j)} :</span> ${crewNames([...new Set(n)])}`).join('<br>')}</p>`).join('')}</details>`:''}
+  ${sim.length?`<h2>Dans le même esprit</h2><div class="strip">${sim.slice(0,18).map(m=>{const id='t'+m.id,inl=lib.has(id);return pcard(inl?'#film/'+id:'https://www.themoviedb.org/movie/'+m.id,m.poster_path?IMG+'w185'+m.poster_path:null,m.title,(m.release_date||'').slice(0,4),!inl,inl,m.vote_average)}).join('')}</div>`:''}
+  ${(t.keywords||[]).length?`<h2>Mots-clés</h2><div class="chips">${t.keywords.map(k=>{const kw=(x.keywords||[]).find(q=>q.name===k&&q.id);return kw?`<a class="chip" href="https://www.themoviedb.org/keyword/${encodeURIComponent(kw.id)}" target="_blank" rel="noopener noreferrer" title="Voir les films associés sur TMDB">${esc(k)}</a>`:`<span class="chip">${esc(k)}</span>`}).join('')}</div>`:''}
+  ${((x.images||{}).backdrops||[]).length?`<h2>Images</h2><div class="gal">${x.images.backdrops.slice(0,12).map(i=>`<a href="${IMG}original${i.file_path}" target="_blank" rel="noopener"><img loading="lazy" src="${IMG}w300${i.file_path}" alt=""></a>`).join('')}</div>`:''}
+`;
+}
+async function showDetail(id){
+  const el=$('#detail');el.classList.remove('hide');
+  el.innerHTML='<div class="topbar"><button class="btn alt" id="back" type="button">← Ma vidéothèque</button></div><p class="mute">Chargement…</p>';
+  try{
+    const r=await fetch(`data/films/${encodeURIComponent(id)}.json?v=${Date.now()}`,{cache:'no-store'});
+    if(!r.ok)throw new Error('fiche introuvable (HTTP '+r.status+')');
+    const f=await r.json();
+    if(location.hash!=='#film/'+id)return;
+    el.innerHTML=detailHTML(f);
+    document.title=((f.tmdb&&f.tmdb.title)||(f.csv&&f.csv.title)||'Film')+' · Ma vidéothèque';
+  }catch(e){el.innerHTML='<div class="topbar"><button class="btn alt" id="back" type="button">← Ma vidéothèque</button></div><p class="mute">Impossible d’afficher ce film : '+esc(e.message)+'</p>'}
+}
+
+async function showSaga(id){
+ const el=$('#detail');el.classList.remove('hide');
+ el.innerHTML='<div class="topbar"><button class="btn alt" id="back" type="button">← Ma vidéothèque</button></div><p class="mute">Chargement de la saga…</p>';
+ try{
+  if(!/^\d+$/.test(String(id)))throw new Error('Identifiant de saga invalide.');
+  const r=await fetch('data/sagas/'+encodeURIComponent(id)+'.json',{cache:'no-cache'});
+  if(!r.ok)throw new Error(r.status===404?'Les informations de cette saga (ID TMDB '+id+') ne sont pas encore enregistrées.':'fiche de saga introuvable (HTTP '+r.status+')');
+  const saga=await r.json();
+  if(location.hash!=='#saga/'+id)return;
+  const parts=[...(saga.parts||[])].sort((a,b)=>(a.release_date||'9999').localeCompare(b.release_date||'9999'));
+  const matches=parts.map(m=>{
+   const exact='t'+m.id,film=ALL.find(a=>a.id===exact)||ALL.find(a=>a.id.startsWith(exact+'-')||a.id.startsWith(exact+'_'));
+   return {m,film};
+  });
+  const watched=matches.filter(x=>x.film&&x.film.w).length,inLibrary=matches.filter(x=>x.film).length;
+  const bd=saga.backdrop_path?'style="--bd:url('+IMG+'w1280'+saga.backdrop_path+')"':'';
+  const poster=saga.poster_path?'<img class="saga-poster" src="'+IMG+'w500'+saga.poster_path+'" alt="Affiche de '+esc(saga.name)+'">':'';
+  const cards=matches.map(({m,film})=>{
+   const href=film?'#film/'+film.id:'https://www.themoviedb.org/movie/'+m.id;
+   const title=m.title||m.original_title||'Film sans titre';
+   const release=m.release_date?fmtLong(m.release_date):'Date de sortie inconnue';
+   const img=m.poster_path?'<img loading="lazy" decoding="async" src="'+IMG+'w342'+m.poster_path+'" alt="">':'<div class="noimg">'+esc(title.slice(0,2))+'</div>';
+   return '<a class="saga-row" href="'+esc(href)+'"'+(!film?' target="_blank" rel="noopener"':'')+'>'+
+    '<div class="saga-cover">'+img+
+     '<div class="saga-ratings">'+
+      (m.vote_average!=null?'<span class="badge tmdb" title="Note moyenne TMDB">'+fmtR(Number(m.vote_average))+'</span>':'')+
+      (film&&film.r!=null?'<span class="badge '+rcls(film.r)+'" title="Ma note : '+fmtR(film.r)+' / 10">'+fmtR(film.r)+'</span>':'')+
+     '</div>'+
+     (film&&film.w?'<span class="poster-date">Vu le '+fmtD(film.w)+'</span>':'')+
+    '</div><div class="saga-info"><h3>'+esc(title)+'</h3><div class="saga-release">'+esc(release)+'</div>'+
+     (m.overview?'<p class="saga-overview">'+esc(m.overview)+'</p>':'<p class="saga-overview mute">Synopsis non disponible.</p>')+
+    '</div></a>';
+  }).join('');
+  el.innerHTML='<div class="topbar"><button class="btn alt" id="back" type="button">← Ma vidéothèque</button></div>'+
+   '<div class="hero" '+bd+'><div class="hero-in">'+poster+'<div class="dinfo"><h1>'+esc(saga.name||'Saga')+'</h1><div class="saga-stats"><span class="chip">'+parts.length+' films référencés</span><span class="chip">'+inLibrary+' dans ma vidéothèque</span><span class="chip">'+watched+' vus</span></div></div></div></div>'+
+   (saga.overview?'<h2>À propos de la saga</h2><p>'+esc(saga.overview)+'</p>':'')+
+   '<h2>Films de la saga</h2><p class="mute">Les films déjà présents dans ta vidéothèque ouvrent leur fiche. Les autres renvoient vers TMDB.</p><div class="saga-grid">'+(cards||'<p class="mute">Aucun film référencé dans cette collection.</p>')+'</div>'+
+   '<p class="mute">Données TMDB · actualisées le '+(saga.fetchedAt?fmtD(saga.fetchedAt.slice(0,10)):'date inconnue')+'.</p>';
+  document.title=(saga.name||'Saga')+' · Ma vidéothèque';
+ }catch(e){
+  if(location.hash!=='#saga/'+id)return;
+  el.innerHTML='<div class="topbar"><button class="btn alt" id="back" type="button">← Ma vidéothèque</button></div><p class="mute">'+esc(e.message)+'</p>'+(String(e.message).includes('ne sont pas encore enregistrées')?'<p><a href="tools.html?saga='+encodeURIComponent(id)+'">Actualiser cette saga dans les outils</a></p>':'');
+  document.title='Saga · Ma vidéothèque';
+ }
+}
+
+$('#detail').addEventListener('click',e=>{if(e.target.id==='back')location.hash=''});
+function route(){
+  const m=location.hash.match(/^#film\/([\w-]+)$/),s=location.hash.match(/^#saga\/(\d+)$/),isSt=location.hash==='#stats',was=document.body.classList.contains('indetail');
+  if(m||s||isSt){
+    if(!was)gridScroll=window.scrollY;
+    document.body.classList.add('indetail');window.scrollTo(0,0);
+    $('#detail').classList.toggle('hide',!(m||s));$('#stats').classList.toggle('hide',!isSt);
+    if(m)showDetail(m[1]);else if(s)showSaga(s[1]);else showStats();
+  }else{
+    document.body.classList.remove('indetail');$('#detail').classList.add('hide');$('#stats').classList.add('hide');document.title='Ma vidéothèque';
+    if(was)window.scrollTo(0,gridScroll);
+  }
+}
+window.addEventListener('hashchange',route);
+
+/* ---------- statistiques ---------- */
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+const sum=a=>a.reduce((x,y)=>x+y,0);
+const fmtA=v=>v==null?'–':v.toFixed(1).replace('.',',');
+function groupBy(list,fn){const m=new Map();list.forEach(f=>{const r=fn(f);(Array.isArray(r)?r:[r]).forEach(k=>{if(k==null||k==='')return;if(!m.has(k))m.set(k,[]);m.get(k).push(f)})});return m}
+const st=list=>({n:list.length,avg:avg(list.filter(f=>f.r!=null).map(f=>f.r)),h:sum(list.map(f=>f.m||0))/60});
+const rc=r=>r==null?'':r>=7?'c-g':r>=5?'c-o':'c-r';
+let ymetric='n';
+function vchart(items,metric){
+  const val=i=>metric==='avg'?i.avg:metric==='h'?i.h:i.n,max=Math.max(...items.map(i=>val(i)||0),1);
+  return `<div class="vb">${items.map(i=>{const v=val(i)||0,txt=metric==='avg'?fmtA(i.avg):metric==='h'?Math.round(i.h)+' h':i.n;
+    return `<div class="vcol" title="${esc(i.label)} : ${i.n} film(s), note moyenne ${fmtA(i.avg)}"><span class="vv">${txt}</span><div class="bar ${i.cls||(metric==='avg'?rc(i.avg):'')}" style="height:${(metric==='avg'?v/10:v/max)*100}%"></div><span class="vl">${esc(i.label)}</span></div>`}).join('')}</div>`;
+}
+function hrows(items,opt){
+  const max=Math.max(...items.map(i=>opt.avg?10:i.n),1);
+  return items.map(i=>`<button class="hrow${opt.key?'':' static'}" type="button" ${opt.key?`data-${opt.key}="${esc(i.label)}"`:''}><span class="hl">${esc(i.label)}</span><span class="hb"><i class="${opt.avg?rc(i.avg):''}" style="width:${((opt.avg?i.avg:i.n)/max)*100}%"></i></span><span class="hv">${opt.avg?fmtA(i.avg):i.n} <small>${opt.avg?'('+i.n+')':(i.avg!=null?'· '+fmtA(i.avg):'')}</small></span></button>`).join('');
+}
+const MONTHS=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'],DAYS=['lun.','mar.','mer.','jeu.','ven.','sam.','dim.'];
+function statsYear(){
+  const w=ALL.filter(f=>f.w);
+  const byY=[...groupBy(w,f=>f.w.slice(0,4))].sort((a,b)=>a[0]<b[0]?-1:1).map(([k,l])=>({label:k,...st(l)}));
+  const lab={n:'Nombre de films',h:'Heures de films',avg:'Note moyenne'};
+  return `<div class="tabs" role="group" aria-label="Indicateur">${Object.keys(lab).map(k=>`<button type="button" data-ym="${k}" aria-pressed="${k===ymetric}">${lab[k]}</button>`).join('')}</div>${vchart(byY,ymetric)}`;
+}
+function renderStats(){
+  const all=st(ALL),w=ALL.filter(f=>f.w),years=new Set(w.map(f=>f.w.slice(0,4))),dates=w.map(f=>f.w).sort();
+  const months=dates.length?Math.max(1,(new Date(dates[dates.length-1])-new Date(dates[0]))/2629800000):1;
+  const kpi=(v,l)=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`;
+  const dec=[...groupBy(ALL,f=>f.y?Math.floor(f.y/10)*10:null)].sort((a,b)=>a[0]-b[0]).map(([k,l])=>({label:k+'s',...st(l)}));
+  const gen=[...groupBy(ALL,f=>f.g)].map(([k,l])=>({label:k,...st(l)}));
+  const dirs=[...groupBy(ALL,f=>f.d)].map(([k,l])=>({label:k,...st(l)}));
+  const rated=ALL.filter(f=>f.r!=null),dist=Array.from({length:10},(_,i)=>({label:String(i+1),n:rated.filter(f=>Math.round(f.r)===i+1).length,avg:i+1,h:0,cls:rc(i+1)}));
+  const mon=Array.from({length:12},(_,i)=>({label:MONTHS[i],...st(w.filter(f=>+f.w.slice(5,7)===i+1))}));
+  const day=Array.from({length:7},(_,i)=>({label:DAYS[i],...st(w.filter(f=>(new Date(f.w+'T12:00:00').getDay()+6)%7===i))}));
+  const rec=(t,l)=>`<div><h2 style="margin-top:18px;font-size:1rem">${t}</h2><ul class="reclist">${l.map(f=>`<li><a href="#film/${esc(f.id)}">${esc(f.t)}</a> <span class="mute">${esc(f.y||'')}${f.m?' · '+fmtM(f.m):''}${f.r!=null?' · note '+fmtR(f.r):''}</span></li>`).join('')}</ul></div>`;
+  const withM=ALL.filter(f=>f.m);
+  $('#stats').innerHTML=`<div class="topbar"><button class="btn alt" id="back" type="button">← Ma vidéothèque</button></div>
+  <h1>Statistiques</h1><p class="mute">Calculées sur ${ALL.length} films, dont ${w.length} avec une date de visionnage.</p>
+  <div class="cards">${kpi(ALL.length,'films vus')}${kpi(Math.round(all.h).toLocaleString('fr-FR')+' h','de films, soit '+(all.h/24).toFixed(0)+' jours')}${kpi(fmtA(all.avg),'note moyenne')}${kpi(fmtM(Math.round(avg(withM.map(f=>f.m))||0)),'durée moyenne')}${kpi(w.length?(w.length/months).toFixed(1).replace('.',','):'–','films par mois en moyenne')}${kpi(years.size,'années de visionnage')}</div>
+  <h2>Films vus par année</h2><div id="ychart">${statsYear()}</div>
+  <div class="two-col"><div><h2>Par mois de l’année</h2>${vchart(mon,'n')}</div><div><h2>Par jour de la semaine</h2>${vchart(day,'n')}</div></div>
+  <h2>Répartition de mes notes</h2>${vchart(dist,'n')}
+  <div class="two-col"><div><h2>Note moyenne par genre</h2><p class="mute">Genres avec au moins 5 films. Clique pour filtrer.</p>${hrows(gen.filter(g=>g.n>=5).sort((a,b)=>b.avg-a.avg),{avg:1,key:'genre'})}</div>
+  <div><h2>Genres les plus vus</h2><p class="mute">Nombre de films et note moyenne.</p>${hrows(gen.sort((a,b)=>b.n-a.n).slice(0,14),{key:'genre'})}</div></div>
+  <div class="two-col"><div><h2>Par décennie de sortie</h2>${hrows(dec,{})}</div><div><h2>Note moyenne par décennie</h2>${hrows(dec.filter(d=>d.n>=3),{avg:1})}</div></div>
+  <div class="two-col"><div><h2>Réalisateurs les plus vus</h2>${hrows(dirs.sort((a,b)=>b.n-a.n||b.avg-a.avg).slice(0,12),{key:'dir'})}</div>
+  <div><h2>Réalisateurs les mieux notés</h2><p class="mute">Au moins 3 films vus.</p>${hrows(dirs.filter(d=>d.n>=3&&d.avg!=null).sort((a,b)=>b.avg-a.avg||b.n-a.n).slice(0,12),{avg:1,key:'dir'})}</div></div>
+  <h2>Records</h2><div class="two-col">${rec('Les plus longs',[...withM].sort((a,b)=>b.m-a.m).slice(0,5))}${rec('Les plus courts',[...withM].sort((a,b)=>a.m-b.m).slice(0,5))}${rec('Les plus anciens',ALL.filter(f=>f.y).sort((a,b)=>a.y-b.y).slice(0,5))}${rec('Les mieux notés (les plus récemment vus)',rated.filter(f=>f.r>=10).sort((a,b)=>(b.w||'')<(a.w||'')?-1:1).slice(0,5))}</div>`;
+}
+function showStats(){document.title='Statistiques · Ma vidéothèque';$('#stats').classList.remove('hide');if(ALL.length)renderStats();else $('#stats').innerHTML='<div class="topbar"><button class="btn alt" id="back" type="button">← Ma vidéothèque</button></div><p class="mute">Chargement…</p>'}
+$('#stats').addEventListener('click',e=>{
+  const t=e.target.closest('button');if(!t)return;
+  if(t.id==='back'){location.hash='';return}
+  if(t.dataset.ym){ymetric=t.dataset.ym;$('#ychart').innerHTML=statsYear();return}
+  if(t.dataset.genre||t.dataset.dir){
+    document.querySelectorAll('#filters input,#filters select,#q').forEach(x=>x.value='');
+    if(t.dataset.genre)$('#gsel').value=t.dataset.genre;else $('#dsel').value=t.dataset.dir;
+    $('#filters').classList.remove('hide');apply();gridScroll=0;location.hash='';
+  }
+});
+
+/* ---------- démarrage ---------- */
+(async()=>{
+  await window.__accessReady;
+  const to=setTimeout(()=>{if(!ALL.length)$('#status').textContent='Chargement lent…'},10000);
+  try{
+    const r=await fetch('data/index.json',{cache:'no-cache'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const j=await r.json();
+    clearTimeout(to);
+    build(j.films||[]);
+  }catch(e){clearTimeout(to);$('#status').textContent='Les données ne sont pas encore disponibles ('+e.message+').'}
+  route();
+})();
+</script>
+</body>
+</html>
