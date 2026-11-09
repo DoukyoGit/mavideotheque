@@ -29,4 +29,3 @@ Aucune dépendance npm n'est nécessaire. Avec Node.js 22 ou supérieur :
 ```sh
 node scripts/validate.mjs
 ```
-Ce contrôle est aussi exécuté automatiquement par GitHub Actions sur les pushs et pull requests.
