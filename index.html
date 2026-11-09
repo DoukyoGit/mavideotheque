@@ -181,14 +181,14 @@ body:not(.unlocked)>header,body:not(.unlocked)>main,body:not(.unlocked)>#detail,
   </div>
   <div class="bar">
     <select id="sort" aria-label="Trier par">
-      <option value="w">Date de visionnage</option><option value="r">Note</option>
-      <option value="t">Titre</option><option value="m">Durée</option><option value="d">Réalisateur</option>
+      <option value="w">Vu le</option><option value="r">Note</option>
+      <option value="t">Titre</option><option value="m">Durée</option>
     </select>
     <button id="dirb" class="btn alt" type="button" aria-label="Inverser l’ordre du tri">↓</button>
-    <button id="fbtn" class="btn alt icon-btn" type="button" aria-label="Filtres" title="Filtres" aria-expanded="false"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M7 12h10m-7 6h4"/><circle cx="9" cy="6" r="1.5" fill="currentColor"/><circle cx="15" cy="12" r="1.5" fill="currentColor"/></svg></button>
+    <button id="fbtn" class="btn alt" type="button" aria-expanded="false">Filtres</button>
   </div>
+  <div class="bar"><input id="q" type="search" placeholder="Rechercher un film…" aria-label="Filtrer par titre"></div>
   <div id="filters" class="hide">
-    <label>Titre ou réalisateur<input id="q" type="search" placeholder="Rechercher…" aria-label="Titre ou réalisateur"></label>
     <label>Note<span class="two"><input id="rmin" type="number" min="0" max="10" step="0.5" placeholder="min"><input id="rmax" type="number" min="0" max="10" step="0.5" placeholder="max"></span></label>
     <label>Durée (minutes)<span class="two"><input id="mmin" type="number" min="0" placeholder="min"><input id="mmax" type="number" min="0" placeholder="max"></span></label>
     <label>Vu entre<span class="two"><input id="dfrom" type="date"><input id="dto" type="date"></span></label>
@@ -274,13 +274,13 @@ function render(){
 }
 
 /* ---------- tri et filtres ---------- */
-const keyf={w:f=>f.w,r:f=>f.r,t:f=>f.t,m:f=>f.m,d:f=>(f.d&&f.d[0])||''};
+const keyf={w:f=>f.w,r:f=>f.r,t:f=>f.t,m:f=>f.m};
 const num=id=>{const v=$(id).value;return v===''?null:parseFloat(v)};
 function apply(){
   const q=norm($('#q').value.trim()),d=norm($('#dsel').value.trim()),g=$('#gsel').value;
   const rmin=num('#rmin'),rmax=num('#rmax'),mmin=num('#mmin'),mmax=num('#mmax'),a=$('#dfrom').value,b=$('#dto').value;
   view=ALL.filter(f=>{
-    if(q&&!norm(f.t+' '+(f.o||'')+' '+(f.d||[]).join(' ')).includes(q))return false;
+    if(q&&!norm(f.t).includes(q))return false;
     if(d&&!(f.d||[]).some(x=>norm(x).includes(d)))return false;
     if(g&&!(f.g||[]).includes(g))return false;
     if(rmin!=null&&(f.r==null||f.r<rmin))return false;
@@ -301,7 +301,7 @@ function apply(){
 }
 let tm;const deb=()=>{clearTimeout(tm);tm=setTimeout(apply,150)};
 document.querySelectorAll('header input,header select').forEach(el=>el.addEventListener('input',deb));
-$('#sort').addEventListener('change',()=>{dir=['t','d'].includes($('#sort').value)?1:-1;$('#dirb').textContent=dir<0?'↓':'↑';apply()});
+$('#sort').addEventListener('change',()=>{dir=$('#sort').value==='t'?1:-1;$('#dirb').textContent=dir<0?'↓':'↑';apply()});
 $('#dirb').onclick=()=>{dir=-dir;$('#dirb').textContent=dir<0?'↓':'↑';apply()};
 $('#fbtn').onclick=()=>{const h=$('#filters').classList.toggle('hide');$('#fbtn').setAttribute('aria-expanded',String(!h))};
 $('#reset').onclick=()=>{document.querySelectorAll('#filters input,#filters select,#q').forEach(e=>e.value='');apply()};
