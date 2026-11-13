@@ -11,8 +11,8 @@
 <style>
 :root{--bg:#f3f0ea;--panel:#fff;--ink:#1d1b18;--mute:#6b665e;--line:#ddd7cc;--acc:#b3261e;--accink:#fff;--shadow:0 8px 24px rgba(0,0,0,.14);
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1115;--panel:#181b21;--ink:#ece8e1;--mute:#9a958b;--line:#2a2e36;--acc:#e5534b;--accink:#180a09;--shadow:0 8px 24px rgba(0,0,0,.5)}}
-:root[data-theme="dark"]{--bg:#0f1115;--panel:#181b21;--ink:#ece8e1;--mute:#9a958b;--line:#2a2e36;--acc:#e5534b;--accink:#180a09;--shadow:0 8px 24px rgba(0,0,0,.5)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1115;--panel:#181b21;--ink:#ece8e1;--mute:#9a958b;--line:#2a2e36;--acc:#d7a84b;--accink:#17130a;--shadow:0 8px 24px rgba(0,0,0,.5)}}
+:root[data-theme="dark"]{--bg:#0f1115;--panel:#181b21;--ink:#ece8e1;--mute:#9a958b;--line:#2a2e36;--acc:#d7a84b;--accink:#17130a;--shadow:0 8px 24px rgba(0,0,0,.5)}
 html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
 *,*::before,*::after{box-sizing:inherit}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100%}
@@ -46,8 +46,18 @@ main{max-width:1400px;margin:0 auto;padding:16px 14px 40px}
 .badge.tmdb{left:6px;right:auto;background:#666;color:#fff}
 .poster-date{position:absolute;left:0;right:0;bottom:0;padding:14px 6px 5px;background:linear-gradient(transparent,rgba(0,0,0,.78));color:#fff;font-size:.72rem;font-weight:600;text-shadow:0 1px 2px rgba(0,0,0,.7);text-align:left;pointer-events:none}
 
-.card h2{font-size:.95rem;line-height:1.25;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;min-width:0}
+.card h2{font-size:.95rem;line-height:1.25;margin:0;min-width:0;flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .card .meta{font-size:.8rem;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card .personal-rating{position:static;flex:none;font-size:.95rem;line-height:1.15;padding:5px 7px;border-radius:8px}
+.card .personal-rating small{font-size:.65em;margin-left:1px;opacity:.85}
+.watched-date{display:flex;align-items:center;gap:6px;color:var(--mute);font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.watched-date span{color:#d4a544;font-size:1.1rem;font-weight:800;line-height:1}
+#q{border-radius:999px;padding:11px 15px;min-height:44px}
+.home-controls{flex-wrap:nowrap}
+.home-controls #fbtn{white-space:nowrap}
+.home-controls #sort{flex:1;min-width:0;min-height:42px}
+.home-controls .sort-direction{min-width:42px;min-height:42px;padding:7px}
 #status{padding:30px 0;text-align:center;color:var(--mute)}
 #more{display:block;margin:26px auto 0}
 
@@ -55,7 +65,23 @@ main{max-width:1400px;margin:0 auto;padding:16px 14px 40px}
 
 
 
-@media (max-width:520px){#grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:14px 10px}}
+@media (max-width:520px){
+  header{padding:9px 12px}
+  h1{font-size:1.28rem}
+  .bar+.bar{margin-top:8px}
+  #grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 11px}
+  main{padding:14px 12px 100px}
+  .card{gap:5px}
+  .poster{border-radius:10px}
+  .card h2{font-size:.91rem}
+  .card .meta{font-size:.75rem}
+  .watched-date{font-size:.74rem}
+}
+@media (max-width:360px){
+  .home-controls #fbtn{padding:8px 10px;font-size:.9rem}
+  .home-controls #sort{font-size:.88rem;padding:8px 7px}
+  .card .personal-rating{font-size:.85rem;padding:4px 6px}
+}
 
 
 body.indetail header,body.indetail main{display:none}
@@ -212,15 +238,15 @@ body.unlocked #quickAddFab.ready{display:flex}
   <div class="bar brandbar">
     <h1>Ma vidéothèque</h1><div class="head-actions"><a class="btn alt icon-btn" href="#stats" aria-label="Statistiques" title="Statistiques"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5M4 19h17"/><rect x="7" y="11" width="3" height="6" rx=".5"/><rect x="13" y="7" width="3" height="10" rx=".5"/><rect x="19" y="4" width="2" height="13" rx=".5"/></svg></a><a class="btn alt icon-btn" href="tools.html" aria-label="Paramètres et outils" title="Paramètres et outils"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="m19.4 13.5 1.1.9-1.6 2.8-1.4-.5a7.8 7.8 0 0 1-1.7 1l-.2 1.5h-3.2l-.3-1.5a7.8 7.8 0 0 1-1.7-1l-1.4.5-1.6-2.8 1.1-.9a7.3 7.3 0 0 1 0-2l-1.1-.9 1.6-2.8 1.4.5a7.8 7.8 0 0 1 1.7-1l.3-1.5h3.2l.2 1.5a7.8 7.8 0 0 1 1.7 1l1.4-.5 1.6 2.8-1.1.9a7.3 7.3 0 0 1 0 2Z"/></svg></a></div>
   </div>
-  <div class="bar">
-    <select id="sort" aria-label="Trier par">
-      <option value="w">Vu le</option><option value="r">Note</option>
-      <option value="t">Titre</option><option value="m">Durée</option>
-    </select>
-    <button id="dirb" class="btn alt" type="button" aria-label="Inverser l’ordre du tri">↓</button>
-    <button id="fbtn" class="btn alt" type="button" aria-expanded="false">Filtres</button>
-  </div>
   <div class="bar"><input id="q" type="search" placeholder="Rechercher un film…" aria-label="Filtrer par titre"></div>
+  <div class="bar home-controls">
+    <button id="fbtn" class="btn alt" type="button" aria-expanded="false">☷ Filtres</button>
+    <select id="sort" aria-label="Trier par">
+      <option value="w">Tri : Vu le</option><option value="r">Tri : Note</option>
+      <option value="t">Tri : Titre</option><option value="m">Tri : Durée</option>
+    </select>
+    <button id="dirb" class="btn alt sort-direction" type="button" aria-label="Inverser l’ordre du tri">↓</button>
+  </div>
   <div id="filters" class="hide">
     <label>Note<span class="two"><input id="rmin" type="number" min="0" max="10" step="0.5" placeholder="min"><input id="rmax" type="number" min="0" max="10" step="0.5" placeholder="max"></span></label>
     <label>Durée (minutes)<span class="two"><input id="mmin" type="number" min="0" placeholder="min"><input id="mmax" type="number" min="0" placeholder="max"></span></label>
@@ -269,13 +295,13 @@ const tmdbRatings=new Map(),tmdbPending=new Set();
 let ratingObserver;
 function card(f){
   const img=f.p?`<img loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342${f.p}" alt="">`:`<div class="noimg">${esc((f.t||'?').slice(0,2))}</div>`;
-  const meta=[f.y,fmtM(f.m)].filter(Boolean).join(' · ');
-  const rating=tmdbRatings.get(f.id);
+  const rating=tmdbRatings.get(f.id),director=(f.d||[]).join(', ');
+  const release=f.y?String(f.y):'';
   return `<a class="card" href="#film/${esc(f.id)}"><div class="poster">${img}
     <span class="badge tmdb${rating==null?' hide':''}" data-tmdb-rating="${esc(f.id)}" title="Note moyenne TMDB">${rating==null?'':fmtR(rating)}</span>
-    ${f.r!=null?`<span class="badge ${f.r>=7?'rg':f.r>=5?'ro':'rr'}" title="Ma note : ${fmtR(f.r)} / 10">${fmtR(f.r)}</span>`:''}
-    ${f.w?`<span class="poster-date">Vu le ${fmtD(f.w)}</span>`:''}
-  </div><h2>${esc(f.t)}</h2><div class="meta">${esc(meta)}</div><div class="meta">${esc((f.d||[]).join(', '))}</div></a>`;
+  </div><div class="card-heading"><h2>${esc(f.t)}</h2>${f.r!=null?`<span class="badge personal-rating ${f.r>=7?'rg':f.r>=5?'ro':'rr'}" title="Ma note : ${fmtR(f.r)} / 10">${fmtR(f.r)}<small>/10</small></span>`:''}</div>
+  <div class="meta release-director">${esc([release,director].filter(Boolean).join(' · '))}</div>
+  ${f.w?`<div class="watched-date"><span aria-hidden="true">◉</span> Vu le ${fmtD(f.w)}</div>`:''}</a>`;
 }
 async function loadCardRating(id){
   if(tmdbRatings.has(id)||tmdbPending.has(id))return;
