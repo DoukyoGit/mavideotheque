@@ -174,13 +174,13 @@ async function kodiCompare(){
   const appFilms=appIndex.films,byTmdb=new Map();
   for(const f of appFilms){const tid=appTmdbId(f);if(tid){if(!byTmdb.has(tid))byTmdb.set(tid,[]);byTmdb.get(tid).push(f)}}
   kodiSetStatus('kodiCompareStatus','Comparaison TMDB stricte de '+appFilms.length+' entrées avec '+kodiMovies.length+' films Kodi…');
-  const matchedApp=new Set(),appOnly=[],kodiOnly=[],unidentified=[],lowRated=[],lowRatedIds=new Set();
+  const appOnly=[],kodiOnly=[],unidentified=[],lowRated=[],lowRatedIds=new Set();
   for(const m of kodiMovies){
    const tid=kodiTmdbId(m),title=m.title||m.originaltitle||'Titre inconnu',year=Number(m.year)||null,watched=kodiWatched(m);
    if(!tid){unidentified.push({title,year,detail:(watched?'Kodi : vu':'Kodi : non vu')+' · aucun identifiant TMDB fourni par Kodi.'});continue}
    const candidates=byTmdb.get(tid)||[];
    if(!candidates.length){if(watched)kodiOnly.push({title,year,detail:'Kodi : vu · absent de ta vidéothèque · TMDB '+tid});continue}
-   for(const f of candidates){matchedApp.add(f.id);const rating=Number(f.r);if(Number.isFinite(rating)&&rating>=1&&rating<=5&&!lowRatedIds.has(f.id)){lowRatedIds.add(f.id);lowRated.push({title:f.t||title,year:f.y||year,detail:'Ta note : '+rating+'/10'+(f.w?' · vu le '+f.w:'')+' · TMDB '+tid})}}const seen=candidates.some(appWatched);
+   for(const f of candidates){const rating=Number(f.r);if(Number.isFinite(rating)&&rating>=1&&rating<=5&&!lowRatedIds.has(f.id)){lowRatedIds.add(f.id);lowRated.push({title:f.t||title,year:f.y||year,detail:'Ta note : '+rating+'/10'+(f.w?' · vu le '+f.w:'')+' · TMDB '+tid})}}const seen=candidates.some(appWatched);
    if(seen&&!watched){const f=candidates.find(appWatched);appOnly.push({title:f.t||title,year:f.y||year,detail:'Application : vu le '+f.w+' · Kodi : non vu · TMDB '+tid})}
    else if(watched&&!seen)kodiOnly.push({title:candidates[0].t||title,year:candidates[0].y||year,detail:'Kodi : vu · application : non marqué vu · TMDB '+tid});
   }
