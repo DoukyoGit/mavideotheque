@@ -195,22 +195,31 @@ async function kodiTest(){if(kodiBusy)return;kodiBusy=true;$('#kodiTest').disabl
 function setKodiWorkflow(){setWorkflow('kodi')}
 let duplicateGroups=[];
 function duplicateTmdbId(id){const m=String(id||'').match(/^t(\\d+)/);return m?m[1]:null}
+function duplicateTitleKey(f){
+ const title=String(f.t||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase('fr').replace(/[^a-z0-9]+/g,' ').trim();
+ const year=String(f.y||'').trim();
+ return title&&year?title+'|'+year:null;
+}
 function renderDuplicateGroups(){
  const root=$('#duplicatesResults');
  if(!duplicateGroups.length){root.innerHTML='';return}
- root.innerHTML=duplicateGroups.map((group,index)=>'<article class="comparison-item"><b>'+esc(group.items[0].t||'Film sans titre')+(group.items[0].y?' ('+esc(group.items[0].y)+')':'')+'</b><span class="mute">'+group.items.length+' fiches · TMDB '+esc(group.tmdbId)+'</span>'+group.items.map(f=>'<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--line)"><span><b>'+esc(f.t||'Film sans titre')+(f.y?' ('+esc(f.y)+')':'')+'</b><span class="mute">'+esc(f.w?'Vu le '+f.w:'Aucune date de visionnage')+(f.r!=null?' · Note '+esc(f.r)+'/10':' · Sans note')+' · '+esc(f.id)+'</span></span>'+(group.keepId===f.id?'<span class="good">À conserver</span>':group.keepId?'<button type="button" class="alt" data-delete-duplicate="'+esc(f.id)+'" data-group="'+index+'">Supprimer cette fiche</button>':'<button type="button" class="alt" data-keep-duplicate="'+esc(f.id)+'" data-group="'+index+'">Conserver cette fiche</button>')+'</div>').join('')+'</article>').join('');
+ root.innerHTML=duplicateGroups.map((group,index)=>'<article class="comparison-item"><b>'+esc(group.items[0].t||'Film sans titre')+(group.items[0].y?' ('+esc(group.items[0].y)+')':'')+'</b><span class="mute">'+group.items.length+' fiches · '+esc(group.reason)+'</span>'+group.items.map(f=>'<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--line)"><span><b>'+esc(f.t||'Film sans titre')+(f.y?' ('+esc(f.y)+')':'')+'</b><span class="mute">'+esc(f.w?'Vu le '+f.w:'Aucune date de visionnage')+(f.r!=null?' · Note '+esc(f.r)+'/10':' · Sans note')+' · '+esc(f.id)+'</span></span>'+(group.keepId===f.id?'<span class="good">À conserver</span>':group.keepId?'<button type="button" class="alt" data-delete-duplicate="'+esc(f.id)+'" data-group="'+index+'">Supprimer cette fiche</button>':'<button type="button" class="alt" data-keep-duplicate="'+esc(f.id)+'" data-group="'+index+'">Conserver cette fiche</button>')+'</div>').join('')+'</article>').join('');
 }
 async function scanDuplicates(){
  const button=$('#scanDuplicates');button.disabled=true;$('#duplicatesResults').innerHTML='';
  setStatus($('#duplicatesStatus'),'Analyse de la vidéothèque locale…');
  try{
   const index=await window.VideothequeDB.getIndex();if(!index||!Array.isArray(index.films))throw new Error('Aucune base locale active.');
-  const groups=new Map();
+  const groups=new Map(),claimed=new Set();
   for(const f of index.films){const id=duplicateTmdbId(f.id);if(!id)continue;if(!groups.has(id))groups.set(id,[]);groups.get(id).push(f)}
-  duplicateGroups=[...groups.entries()].filter(([,items])=>items.length>1).map(([tmdbId,items])=>({tmdbId,items:items.slice().sort((a,b)=>(a.w||'').localeCompare(b.w||'')||a.id.localeCompare(b.id)),keepId:null}));
+  duplicateGroups=[...groups.entries()].filter(([,items])=>items.length>1).map(([tmdbId,items])=>({tmdbId,reason:'Même identifiant TMDB : '+tmdbId,items:items.slice().sort((a,b)=>(a.w||'').localeCompare(b.w||'')||a.id.localeCompare(b.id)),keepId:null}));
+  for(const group of duplicateGroups)for(const film of group.items)claimed.add(film.id);
+  const byTitle=new Map();
+  for(const f of index.films){if(claimed.has(f.id))continue;const key=duplicateTitleKey(f);if(!key)continue;if(!byTitle.has(key))byTitle.set(key,[]);byTitle.get(key).push(f)}
+  for(const items of byTitle.values())if(items.length>1)duplicateGroups.push({tmdbId:null,reason:'Même titre et même année · doublon potentiel',items:items.slice().sort((a,b)=>(a.w||'').localeCompare(b.w||'')||a.id.localeCompare(b.id)),keepId:null});
   duplicateGroups.sort((a,b)=>(a.items[0].t||'').localeCompare(b.items[0].t||'','fr'));
   renderDuplicateGroups();
-  setStatus($('#duplicatesStatus'),duplicateGroups.length?duplicateGroups.length+' groupe(s) de doublons détecté(s). Vérifie les dates et les notes avant de choisir la fiche à conserver.':'Aucun doublon détecté : chaque identifiant TMDB n’apparaît qu’une fois.','good');
+  setStatus($('#duplicatesStatus'),duplicateGroups.length?duplicateGroups.length+' groupe(s) de doublons ou doublons potentiels détecté(s). Vérifie les dates et les notes avant de choisir la fiche à conserver.':'Aucun doublon détecté : aucun identifiant TMDB ni couple titre/année n’apparaît plusieurs fois.','good');
  }catch(e){setStatus($('#duplicatesStatus'),'Détection impossible : '+(e.message||e),'bad')}
  finally{button.disabled=false}
 }
