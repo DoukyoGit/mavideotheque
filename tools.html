@@ -164,14 +164,13 @@ function kodiRenderList(id,items){
  const el=$('#'+id);
  if(!items.length){el.innerHTML='<p class="mute">Aucun élément dans cette catégorie.</p>';return}
  el.innerHTML=items.map(x=>'<article class="comparison-item"><b>'+esc(x.title)+(x.year?' ('+esc(x.year)+')':'')+'</b><span class="mute">'+esc(x.detail||'')+'</span><div class="row"><button type="button" class="alt" data-kodi-ignore="'+esc(x.ignoreKey)+'" data-kodi-title="'+esc(x.title)+'">Ignorer</button></div></article>').join('');
- el.querySelectorAll('[data-kodi-ignore]').forEach(button=>{button.onclick=async()=>{button.disabled=true;try{await kodiIgnoreMovie(button.dataset.kodiIgnore,button.dataset.kodiTitle)}catch(e){button.disabled=false;kodiSetStatus('kodiCompareStatus','Impossible d’ignorer ce film : '+(e.message||e),'bad')}}})
+ el.querySelectorAll('[data-kodi-ignore]').forEach(button=>{button.onclick=async()=>{button.disabled=true;try{await kodiIgnoreMovie(button.dataset.kodiIgnore,button.dataset.kodiTitle);const item=button.closest('.comparison-item');if(item)item.remove();const counter=document.querySelector('[data-kodi-summary="'+id+'"]');if(counter)counter.textContent=String(Math.max(0,Number(counter.textContent)-1));if(!el.querySelector('.comparison-item'))el.innerHTML='<p class="mute">Aucun élément dans cette catégorie.</p>'}catch(e){button.disabled=false;kodiSetStatus('kodiCompareStatus','Impossible d’ignorer ce film : '+(e.message||e),'bad')}}})
 }
 async function kodiIgnoreMovie(key,title){
  const current=await window.VideothequeDB.getSetting('kodiIgnoredMovies');
  const ignored=Array.isArray(current)?current:[];
  if(!ignored.includes(key)){ignored.push(key);await window.VideothequeDB.setSetting('kodiIgnoredMovies',ignored)}
  kodiSetStatus('kodiCompareStatus','« '+title+' » est maintenant ignoré dans les comparaisons Kodi.','good');
- await kodiCompare();
 }
 async function kodiCompare(){
  if(kodiBusy)return;kodiBusy=true;$('#kodiCompare').disabled=true;$('#kodiTest').disabled=true;$('#kodiResults').classList.add('hide');$('#kodiSummary').classList.add('hide');
@@ -195,7 +194,7 @@ async function kodiCompare(){
    else if(watched&&!seen)kodiOnly.push({title:candidates[0].t||title,year:candidates[0].y||year,ignoreKey,detail:'Kodi : vu · application : non marqué vu · TMDB '+tid});
   }
   kodiRenderList('kodiAppOnly',appOnly);kodiRenderList('kodiKodiOnly',kodiOnly);kodiRenderList('kodiUnidentified',unidentified);kodiRenderList('kodiLowRated',lowRated);
-  $('#kodiSummary').classList.remove('hide');$('#kodiSummary').innerHTML='<div class="results"><article class="comparison-item"><b>'+appOnly.length+'</b><span class="mute">Vus dans l’application, non vus dans Kodi</span></article><article class="comparison-item"><b>'+kodiOnly.length+'</b><span class="mute">Vus dans Kodi, non marqués vus dans l’application</span></article><article class="comparison-item"><b>'+unidentified.length+'</b><span class="mute">Films Kodi sans identifiant TMDB</span></article><article class="comparison-item"><b>'+lowRated.length+'</b><span class="mute">Présents dans Kodi, notés strictement moins de 5/10</span></article></div><p class="mute">Comparaison terminée : '+kodiMovies.length+' films Kodi et '+appFilms.length+' entrées dans l’application. Les exclusions sont conservées dans IndexedDB.</p>';
+  $('#kodiSummary').classList.remove('hide');$('#kodiSummary').innerHTML='<div class="results"><article class="comparison-item"><b data-kodi-summary="kodiAppOnly">'+appOnly.length+'</b><span class="mute">Vus dans l’application, non vus dans Kodi</span></article><article class="comparison-item"><b data-kodi-summary="kodiKodiOnly">'+kodiOnly.length+'</b><span class="mute">Vus dans Kodi, non marqués vus dans l’application</span></article><article class="comparison-item"><b data-kodi-summary="kodiUnidentified">'+unidentified.length+'</b><span class="mute">Films Kodi sans identifiant TMDB</span></article><article class="comparison-item"><b data-kodi-summary="kodiLowRated">'+lowRated.length+'</b><span class="mute">Présents dans Kodi, notés strictement moins de 5/10</span></article></div><p class="mute">Comparaison terminée : '+kodiMovies.length+' films Kodi et '+appFilms.length+' entrées dans l’application. Les exclusions sont conservées dans IndexedDB.</p>';
   $('#kodiResults').classList.remove('hide');kodiSetStatus('kodiCompareStatus','Comparaison terminée. Aucun élément n’a été modifié.','good');
  }catch(e){let msg=e.message||'Erreur inconnue.';if(/Failed to fetch|NetworkError|WebSocket/i.test(msg))msg+=' Chrome peut bloquer l’accès au réseau local : autorise-le pour ce site.';kodiSetStatus('kodiCompareStatus',msg,'bad')}
  finally{kodiBusy=false;$('#kodiCompare').disabled=false;$('#kodiTest').disabled=false}
