@@ -42,7 +42,7 @@ main{padding-top:20px}.brandbar h1 a{text-decoration:none}
 <button id="workflowToken" class="workflow-choice alt" type="button" aria-pressed="false"><svg class="wico" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="m11 12 8-8M16 7l2 2"/></svg><strong>Jeton TMDB</strong><span>Enregistrer ou effacer le jeton d’accès TMDB dans la base locale.</span></button>
 <button id="workflowExport" class="workflow-choice alt" type="button" aria-pressed="false"><svg class="wico" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M8 11l4 4 4-4M5 20h14"/></svg><strong>Export Letterboxd</strong><span>Créer un fichier CSV à importer manuellement, en choisissant combien de films exporter.</span></button>
 <button id="workflowBackup" class="workflow-choice alt" type="button" aria-pressed="false"><svg class="wico" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3Z"/><path d="M4 8v8c0 1.7 3.6 3 8 3s8-1.3 8-3V8"/></svg><strong>Sauvegarde complète</strong><span>Exporter et vérifier une sauvegarde de toutes les fiches de films et des données de sagas.</span></button>
-<button id="workflowKodi" class="workflow-choice alt" type="button" aria-pressed="false"><svg class="wico" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8"/></svg><strong>Comparer avec Kodi</strong><span>Comparer les statuts de visionnage de Kodi avec ceux de ta vidéothèque, sans rien modifier.</span></button>
+<button id="workflowDuplicates" class="workflow-choice alt" type="button" aria-pressed="false"><svg class="wico" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg><strong>Détecter les doublons</strong><span>Repérer les fiches correspondant au même film TMDB et supprimer celles en trop.</span></button><button id="workflowKodi" class="workflow-choice alt" type="button" aria-pressed="false"><svg class="wico" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8"/></svg><strong>Comparer avec Kodi</strong><span>Comparer les statuts de visionnage de Kodi avec ceux de ta vidéothèque, sans rien modifier.</span></button>
 </div><p class="mute" id="workflowHint">Sélectionne un parcours pour afficher uniquement les outils correspondants.</p></section>
 <div id="tokenWorkflow" class="hide"><section><h2>Jeton TMDB</h2><label for="token">Jeton « Read Access Token » TMDB</label><p class="mute"><a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener noreferrer">Ouvrir les paramètres API de TMDB pour récupérer ton jeton</a></p><input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="Colle ici ton Read Access Token TMDB"><div class="row"><button id="saveToken" type="button">Enregistrer dans IndexedDB</button><button class="alt" id="clearToken" type="button">Effacer le jeton TMDB</button></div><p id="tokenState" class="mute" role="status">Chargement du jeton enregistré…</p></section></div>
 <div id="exportWorkflow" class="hide">
@@ -84,6 +84,7 @@ main{padding-top:20px}.brandbar h1 a{text-decoration:none}
 <div id="databaseImportStatus" class="status" role="status">Vérifie d’abord le fichier sélectionné ci-dessus pour autoriser son import.</div>
 </section>
 </div>
+<div id="duplicatesWorkflow" class="hide"><section><h2>Détecter les doublons</h2><p class="mute">Les fiches sont regroupées par identifiant TMDB. Aucune suppression n’est effectuée pendant la détection. Dans chaque groupe, choisis d’abord la fiche à conserver ; tu pourras ensuite supprimer les autres.</p><div class="row"><button id="scanDuplicates" type="button">Rechercher les doublons</button></div><div id="duplicatesStatus" class="status" role="status">Lance une recherche pour examiner les doublons de ta vidéothèque.</div><div id="duplicatesResults" class="comparison-list"></div></section></div>
 <div id="kodiWorkflow" class="hide"><section><h2>Comparer avec Kodi</h2><p class="mute">Connexion directe à Kodi sur ton réseau local. Comparaison strictement en lecture seule : aucun statut ne sera modifié.</p><label for="kodiHost">Adresse IP ou nom d’hôte de Kodi</label><input id="kodiHost" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="Ex. : 192.168.1.50"><div class="row"><button id="saveKodiIp" type="button">Enregistrer l’adresse</button><button class="alt" id="clearKodiIp" type="button">Effacer l’adresse</button></div><p id="kodiIpState" class="mute" role="status">Chargement de l’adresse enregistrée…</p><div class="row" style="align-items:end"><div><label for="kodiPort">Port WebSocket</label><input id="kodiPort" type="number" min="1" max="65535" value="9090"></div><button id="kodiTest" type="button">Tester la connexion</button></div><p class="mute">L’adresse est conservée dans IndexedDB sur cet appareil après enregistrement. Port WebSocket par défaut : 9090. Le port HTTP 8080 n’est pas utilisé.</p><div id="kodiConnectionStatus" class="status hide" role="status"></div><div class="row"><button id="kodiCompare" type="button">Comparer les bibliothèques</button></div><div id="kodiCompareStatus" class="status hide" role="status"></div><div id="kodiSummary" class="hide"></div><div id="kodiResults" class="hide"><h3>Vus dans l’application, non vus dans Kodi</h3><div id="kodiAppOnly" class="comparison-list"></div><h3>Vus dans Kodi, non marqués vus dans l’application</h3><div id="kodiKodiOnly" class="comparison-list"></div><h3>Films Kodi non identifiés (sans identifiant TMDB)</h3><div id="kodiUnidentified" class="comparison-list"></div><h3>Présents dans Kodi, notés 5/10 ou moins</h3><div id="kodiLowRated" class="comparison-list"></div></div></section><section><h2>Configuration nécessaire dans Kodi</h2><ol><li>Dans <b>Paramètres → Services → Contrôle</b>, active « Autoriser le contrôle à distance par des applications sur d’autres systèmes ».</li><li>Conserve le port TCP par défaut <b>9090</b>, sauf modification personnelle.</li><li>Vérifie que ton téléphone et Kodi sont sur le même réseau local.</li></ol><p class="status warn">Attention : l’interface de contrôle sur le port 9090 ne possède pas d’authentification. Ne l’expose jamais sur Internet et réserve-la à un réseau local de confiance. Chrome peut demander une autorisation d’accès au réseau local.</p></section></div><p class="mute" style="margin-top:18px">Ce produit utilise l'API TMDB mais n'est ni approuvé ni certifié par TMDB.</p>
 </main>
 <script src="mavideotheque-db.js?v=20261115-kodi-settings2"></script>
@@ -192,21 +193,59 @@ async function kodiCompare(){
 }
 async function kodiTest(){if(kodiBusy)return;kodiBusy=true;$('#kodiTest').disabled=true;$('#kodiCompare').disabled=true;try{const address=kodiAddress();kodiSetStatus('kodiConnectionStatus','Connexion à '+address.host+':'+address.port+'…');await kodiConnect();const v=await kodiRpc('JSONRPC.Version'),label=v?.version?'API JSON-RPC '+v.version.major+'.'+v.version.minor+'.'+v.version.patch:'API JSON-RPC disponible';kodiSetStatus('kodiConnectionStatus','Connexion réussie à Kodi ('+label+').','good')}catch(e){let msg=e.message||'Erreur inconnue.';if(/Failed to fetch|NetworkError|WebSocket/i.test(msg))msg+=' Vérifie l’adresse, le port 9090, le contrôle depuis les autres systèmes et l’autorisation réseau local de Chrome.';kodiSetStatus('kodiConnectionStatus',msg,'bad')}finally{kodiBusy=false;$('#kodiTest').disabled=false;$('#kodiCompare').disabled=false}}
 function setKodiWorkflow(){setWorkflow('kodi')}
-$('#workflowKodi').onclick=setKodiWorkflow;$('#saveKodiIp').onclick=saveKodiIp;$('#clearKodiIp').onclick=clearKodiIp;$('#kodiTest').onclick=kodiTest;$('#kodiCompare').onclick=kodiCompare;restoreKodiIp();window.addEventListener('pagehide',kodiDisconnect);
+let duplicateGroups=[];
+function duplicateTmdbId(id){const m=String(id||'').match(/^t(\\d+)/);return m?m[1]:null}
+function renderDuplicateGroups(){
+ const root=$('#duplicatesResults');
+ if(!duplicateGroups.length){root.innerHTML='';return}
+ root.innerHTML=duplicateGroups.map((group,index)=>'<article class="comparison-item"><b>'+esc(group.items[0].t||'Film sans titre')+(group.items[0].y?' ('+esc(group.items[0].y)+')':'')+'</b><span class="mute">'+group.items.length+' fiches · TMDB '+esc(group.tmdbId)+'</span>'+group.items.map(f=>'<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--line)"><span><b>'+esc(f.t||'Film sans titre')+(f.y?' ('+esc(f.y)+')':'')+'</b><span class="mute">'+esc(f.w?'Vu le '+f.w:'Aucune date de visionnage')+(f.r!=null?' · Note '+esc(f.r)+'/10':' · Sans note')+' · '+esc(f.id)+'</span></span>'+(group.keepId===f.id?'<span class="good">À conserver</span>':group.keepId?'<button type="button" class="alt" data-delete-duplicate="'+esc(f.id)+'" data-group="'+index+'">Supprimer cette fiche</button>':'<button type="button" class="alt" data-keep-duplicate="'+esc(f.id)+'" data-group="'+index+'">Conserver cette fiche</button>')+'</div>').join('')+'</article>').join('');
+}
+async function scanDuplicates(){
+ const button=$('#scanDuplicates');button.disabled=true;$('#duplicatesResults').innerHTML='';
+ setStatus($('#duplicatesStatus'),'Analyse de la vidéothèque locale…');
+ try{
+  const index=await window.VideothequeDB.getIndex();if(!index||!Array.isArray(index.films))throw new Error('Aucune base locale active.');
+  const groups=new Map();
+  for(const f of index.films){const id=duplicateTmdbId(f.id);if(!id)continue;if(!groups.has(id))groups.set(id,[]);groups.get(id).push(f)}
+  duplicateGroups=[...groups.entries()].filter(([,items])=>items.length>1).map(([tmdbId,items])=>({tmdbId,items:items.slice().sort((a,b)=>(a.w||'').localeCompare(b.w||'')||a.id.localeCompare(b.id)),keepId:null}));
+  duplicateGroups.sort((a,b)=>(a.items[0].t||'').localeCompare(b.items[0].t||'','fr'));
+  renderDuplicateGroups();
+  setStatus($('#duplicatesStatus'),duplicateGroups.length?duplicateGroups.length+' groupe(s) de doublons détecté(s). Vérifie les dates et les notes avant de choisir la fiche à conserver.':'Aucun doublon détecté : chaque identifiant TMDB n’apparaît qu’une fois.','good');
+ }catch(e){setStatus($('#duplicatesStatus'),'Détection impossible : '+(e.message||e),'bad')}
+ finally{button.disabled=false}
+}
+$('#duplicatesResults').addEventListener('click',async e=>{
+ const keep=e.target.closest('[data-keep-duplicate]'),remove=e.target.closest('[data-delete-duplicate]');
+ if(keep){const group=duplicateGroups[Number(keep.dataset.group)];if(!group)return;group.keepId=keep.dataset.keepDuplicate;renderDuplicateGroups();return}
+ if(!remove)return;
+ const group=duplicateGroups[Number(remove.dataset.group)],id=remove.dataset.deleteDuplicate;
+ if(!group||!group.keepId||id===group.keepId)return;
+ const film=group.items.find(f=>f.id===id);if(!film)return;
+ if(!confirm('Supprimer définitivement « '+(film.t||film.id)+' » de cette vidéothèque locale ? La fiche conservée sera « '+(group.items.find(f=>f.id===group.keepId)?.t||group.keepId)+' ».'))return;
+ remove.disabled=true;
+ try{
+  await window.VideothequeDB.removeFilms([id]);
+  setStatus($('#duplicatesStatus'),'Fiche supprimée. Actualisation de la liste…','good');
+  await scanDuplicates();
+ }catch(error){remove.disabled=false;setStatus($('#duplicatesStatus'),'Suppression impossible : '+(error.message||error),'bad')}
+});
+$('#scanDuplicates').onclick=scanDuplicates;
+$('#workflowDuplicates').onclick=()=>setWorkflow('duplicates');$('#workflowKodi').onclick=setKodiWorkflow;$('#saveKodiIp').onclick=saveKodiIp;$('#clearKodiIp').onclick=clearKodiIp;$('#kodiTest').onclick=kodiTest;$('#kodiCompare').onclick=kodiCompare;restoreKodiIp();window.addEventListener('pagehide',kodiDisconnect);
 
 let exportIndex=null;
 function setWorkflow(which){
- const isToken=which==='token',isExport=which==='export',isBackup=which==='backup',isKodi=which==='kodi';
+ const isToken=which==='token',isExport=which==='export',isBackup=which==='backup',isKodi=which==='kodi',isDuplicates=which==='duplicates';
  $('#tokenWorkflow').classList.toggle('hide',!isToken);
  $('#kodiWorkflow').classList.toggle('hide',!isKodi);
+ $('#duplicatesWorkflow').classList.toggle('hide',!isDuplicates);
  $('#exportWorkflow').classList.toggle('hide',!isExport);
  $('#backupWorkflow').classList.toggle('hide',!isBackup);
 
- for(const [id,active] of [['workflowToken',isToken],['workflowExport',isExport],['workflowBackup',isBackup],['workflowKodi',isKodi]]){
+ for(const [id,active] of [['workflowToken',isToken],['workflowExport',isExport],['workflowBackup',isBackup],['workflowKodi',isKodi],['workflowDuplicates',isDuplicates]]){
   $('#'+id).classList.toggle('alt',!active);
   $('#'+id).setAttribute('aria-pressed',String(active));
  }
- const hints={token:'Gestion du jeton TMDB. Il est conservé dans IndexedDB sur cet appareil et n’est pas inclus dans les sauvegardes de la vidéothèque.',export:'Parcours export sélectionné. Aucun identifiant ni connexion à Letterboxd n’est nécessaire.',backup:'Sauvegarde complète sélectionnée. Les fiches détaillées et le cache des sagas sont inclus ; aucune donnée n’est remplacée.',kodi:'Comparaison Kodi sélectionnée. Connexion locale en lecture seule ; aucun jeton requis.'};
+ const hints={token:'Gestion du jeton TMDB. Il est conservé dans IndexedDB sur cet appareil et n’est pas inclus dans les sauvegardes de la vidéothèque.',export:'Parcours export sélectionné. Aucun identifiant ni connexion à Letterboxd n’est nécessaire.',backup:'Sauvegarde complète sélectionnée. Les fiches détaillées et le cache des sagas sont inclus ; aucune donnée n’est remplacée.',kodi:'Comparaison Kodi sélectionnée. Connexion locale en lecture seule ; aucun jeton requis.',duplicates:'Détection des fiches qui partagent le même identifiant TMDB. Les suppressions sont déclenchées individuellement après ton choix.'};
  $('#workflowHint').textContent=hints[which]||'Sélectionne un parcours pour afficher uniquement les outils correspondants.';
  if(isExport)loadExportIndex();
 }
