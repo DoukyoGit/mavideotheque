@@ -162,6 +162,25 @@ async function getAll(storeName){
  const records=await new Promise((resolve,reject)=>{const out=[],req=store.openCursor(range);req.onsuccess=()=>{const c=req.result;if(c){out.push(c.value);c.continue()}else resolve(out)};req.onerror=()=>reject(req.error)});
  await transactionDone(tx);return records.map(record=>record.data);
 }
+async function removeFilms(ids){
+ if(!Array.isArray(ids)||!ids.length||ids.some(id=>typeof id!=='string'||!id))throw new Error('Liste de films à supprimer invalide.');
+ if(new Set(ids).size!==ids.length)throw new Error('La liste contient des identifiants en double.');
+ const active=await getRecord('meta','active');if(!active)throw new Error('Aucune base locale active.');
+ const generation=active.generation,db=await openDB(),tx=db.transaction(['meta','indexes','films'],'readwrite');
+ const indexStore=tx.objectStore('indexes'),filmStore=tx.objectStore('films'),metaStore=tx.objectStore('meta');
+ const indexRecord=await new Promise((resolve,reject)=>{const req=indexStore.get(generation);req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>reject(req.error)});
+ if(!indexRecord||!indexRecord.data||!Array.isArray(indexRecord.data.films))throw new Error('Index local introuvable.');
+ const remove=new Set(ids),existing=indexRecord.data.films.filter(f=>remove.has(f.id));
+ if(existing.length!==ids.length)throw new Error('Au moins une fiche à supprimer est absente de l’index.');
+ const films=indexRecord.data.films.filter(f=>!remove.has(f.id));
+ if(!films.length)throw new Error('Impossible de supprimer tous les films de la vidéothèque.');
+ for(const id of ids)filmStore.delete(generation+'|'+id);
+ const next={...indexRecord.data,count:films.length,generatedAt:new Date().toISOString(),films};
+ indexStore.put({key:generation,data:next});
+ metaStore.put({...active,filmCount:films.length,lastModifiedAt:new Date().toISOString()});
+ await transactionDone(tx);
+ return {filmCount:films.length,removedFilms:ids.length};
+}
 async function saveChanges(payload){
  if(!payload||!payload.index||!Array.isArray(payload.index.films))throw new Error('Index local invalide.');
  const active=await getRecord('meta','active');if(!active)throw new Error('Aucune base locale active. Importe d’abord ta sauvegarde complète.');
@@ -185,5 +204,5 @@ function getSetting(name){if(typeof name!=='string'||!name.trim())return Promise
 async function setSetting(name,value){const validValue=typeof value==='string'||(value!==null&&typeof value==='object'&&(Array.isArray(value)||Object.getPrototypeOf(value)===Object.prototype));if(typeof name!=='string'||!name.trim()||!validValue)throw new Error('Paramètre local invalide.');const db=await openDB(),tx=db.transaction('meta','readwrite');tx.objectStore('meta').put({key:'setting|'+name,value,updatedAt:new Date().toISOString()});await transactionDone(tx)}
 async function deleteSetting(name){if(typeof name!=='string'||!name.trim())throw new Error('Nom de paramètre invalide.');const db=await openDB(),tx=db.transaction('meta','readwrite');tx.objectStore('meta').delete('setting|'+name);await transactionDone(tx)}
 
- global.VideothequeDB={getStatus,getIndex,getFilm,getSaga,getSetting,setSetting,deleteSetting,getAllFilms:()=>getAll('films'),getAllSagas:()=>getAll('sagas'),saveChanges,importBackup};
+ global.VideothequeDB={getStatus,getIndex,getFilm,getSaga,getSetting,setSetting,deleteSetting,getAllFilms:()=>getAll('films'),getAllSagas:()=>getAll('sagas'),saveChanges,removeFilms,importBackup};
 })(window);
