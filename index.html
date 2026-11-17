@@ -434,6 +434,8 @@ let ratingObserver;
 function filmSlug(title){return String(title||'film').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'film'}
 function filmHref(id,title){return '#film/'+encodeURIComponent(String(id))+'-'+filmSlug(title)}
 function currentFilmRouteId(){const match=location.hash.match(/^#film\/([\w-]+?)(?:-[a-z0-9-]+)?$/i);return match?match[1]:null}
+function sagaHref(id,name){return '#saga/'+encodeURIComponent(String(id))+'-'+filmSlug(name)}
+function currentSagaRouteId(){const match=location.hash.match(/^#saga\/(\d+)(?:-[a-z0-9-]+)?$/i);return match?match[1]:null}
 function card(f,byDate){
   const img=f.p?`<img loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342${f.p}" alt="">`:`<div class="noimg">${esc((f.t||'?').slice(0,2))}</div>`;
   const rating=tmdbRatings.get(f.id),director=(f.d||[]).join(', ');
@@ -613,7 +615,7 @@ function detailHTML(f){
   </div></div>
   ${t.overview?`<h2>Synopsis</h2><p>${esc(t.overview)}</p>${t.overviewLang==='en'?'<p class="mute">Synopsis non disponible en français.</p>':''}`:''}
   <div class="cols"><div><h2>Équipe</h2><dl class="kv">${kv('Réalisation',crewNames(t.directors))}${kv('Scénario',crewNames(t.writers))}${kv('Musique',crewNames(t.composers))}${kv('Photographie',crewNames(t.cinematographers))}${kv('Montage',crewNames(t.editors))}${kv('Production',crewNames(t.producers))}</dl></div>
-  <div><h2>Informations</h2><dl class="kv">${kv('Sortie',fmtLong(t.releaseDate))}${kv('Pays',names(t.countries))}${kv('Langues',names(t.languages))}${kv('Studios',names((t.companies||[]).slice(0,6)))}${kv('Saga',(t.collection||{}).id?'<a href="#saga/'+encodeURIComponent(t.collection.id)+'">'+esc((t.collection||{}).name||'Voir la saga')+'</a>':esc((t.collection||{}).name||''))}${kv('Chiffres',esc(money1))}</dl></div></div>
+  <div><h2>Informations</h2><dl class="kv">${kv('Sortie',fmtLong(t.releaseDate))}${kv('Pays',names(t.countries))}${kv('Langues',names(t.languages))}${kv('Studios',names((t.companies||[]).slice(0,6)))}${kv('Saga',(t.collection||{}).id?'<a href="'+esc(sagaHref(t.collection.id,(t.collection||{}).name||'Saga'))+'">'+esc((t.collection||{}).name||'Voir la saga')+'</a>':esc((t.collection||{}).name||''))}${kv('Chiffres',esc(money1))}</dl></div></div>
   ${cast.length?`<h2>Distribution</h2><div class="strip">${cast.slice(0,20).map(a=>pcard('https://www.themoviedb.org/person/'+a.id,a.profile_path?IMG+'w185'+a.profile_path:null,a.name,a.character,true)).join('')}</div>
     ${cast.length>20?`<details><summary>Distribution complète (${cast.length})</summary>${cast.map(a=>`<span>${a.id!=null?`<a href='https://www.themoviedb.org/person/${encodeURIComponent(a.id)}' target='_blank' rel='noopener noreferrer'>${esc(a.name)}</a>`:esc(a.name)}${a.character?` <span class='mute'>(${esc(a.character)})</span>`:""}</span>`).join("<br>")}</details>`:""}`:""}
   ${Object.keys(crewBy).length?`<details><summary>Équipe technique complète</summary>${Object.keys(crewBy).sort().map(d=>`<p><b>${esc(d)}</b><br>${[...crewBy[d]].map(([j,n])=>`<span class="mute">${esc(j)} :</span> ${crewNames([...new Set(n)])}`).join('<br>')}</p>`).join('')}</details>`:''}
@@ -642,8 +644,8 @@ async function showSaga(id){
  try{
   if(!/^\d+$/.test(String(id)))throw new Error('Identifiant de saga invalide.');
   const saga=await getSagaRecord(id);
-  if(location.hash!=='#saga/'+id)return;
-  const parts=[...(saga.parts||[])].sort((a,b)=>(a.release_date||'9999').localeCompare(b.release_date||'9999'));
+  if(currentSagaRouteId()!==String(id))return;
+  const sagaName=saga.name||'Saga',canonicalHash=sagaHref(id,sagaName);\n  if(location.hash!==canonicalHash)history.replaceState(null,'',location.pathname+location.search+canonicalHash);\n  const parts=[...(saga.parts||[])].sort((a,b)=>(a.release_date||'9999').localeCompare(b.release_date||'9999'));
   const matches=parts.map(m=>{
    const exact='t'+m.id,film=ALL.find(a=>a.id===exact)||ALL.find(a=>a.id.startsWith(exact+'-')||a.id.startsWith(exact+'_'));
    return {m,film};
@@ -672,9 +674,9 @@ async function showSaga(id){
    (saga.overview?'<h2>À propos de la saga</h2><p>'+esc(saga.overview)+'</p>':'')+
    '<h2>Films de la saga</h2><p class="mute">Les films déjà présents dans ta vidéothèque ouvrent leur fiche. Les autres renvoient vers TMDB.</p><div class="saga-grid">'+(cards||'<p class="mute">Aucun film référencé dans cette collection.</p>')+'</div>'+
    '<p class="mute">Données TMDB · actualisées le '+(saga.fetchedAt?fmtD(saga.fetchedAt.slice(0,10)):'date inconnue')+'.</p>';
-  document.title=(saga.name||'Saga')+' · Ma vidéothèque';
+  document.title=sagaName+' · Ma vidéothèque';
  }catch(e){
-  if(location.hash!=='#saga/'+id)return;
+  if(currentSagaRouteId()!==String(id))return;
   el.innerHTML='<div class="topbar"><button class="btn alt" id="back" type="button">Ma vidéothèque</button></div><p class="mute">'+esc(e.message)+'</p>'+(String(e.message).includes('ne sont pas encore enregistrées')?'<p><a href="tools.html?saga='+encodeURIComponent(id)+'">Actualiser cette saga dans les outils</a></p>':'');
   document.title='Saga · Ma vidéothèque';
  }
@@ -808,7 +810,7 @@ function renderKodiPage(){
  renderKodiMovies();
 }
 function route(){
-  const m=location.hash.match(/^#film\/([\w-]+?)(?:-[a-z0-9-]+)?$/i),s=location.hash.match(/^#saga\/(\d+)$/),isSt=location.hash==='#stats',isDiscover=location.hash==='#discover'||location.hash.startsWith('#discover?'),isKodi=location.hash==='#kodi',discoverQuery=new URLSearchParams(location.hash.split('?')[1]||''),was=document.body.classList.contains('indetail');
+  const m=location.hash.match(/^#film\/([\w-]+?)(?:-[a-z0-9-]+)?$/i),s=location.hash.match(/^#saga\/(\d+)(?:-[a-z0-9-]+)?$/i),isSt=location.hash==='#stats',isDiscover=location.hash==='#discover'||location.hash.startsWith('#discover?'),isKodi=location.hash==='#kodi',discoverQuery=new URLSearchParams(location.hash.split('?')[1]||''),was=document.body.classList.contains('indetail');
   if(m||s||isSt||isDiscover||isKodi){
     if(!was)gridScroll=window.scrollY;
     document.body.classList.add('indetail');window.scrollTo(0,0);
