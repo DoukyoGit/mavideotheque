@@ -858,6 +858,7 @@ async function loadDiscoverMetadata(){
   if(!await quickTokenState())throw Error('Configure ton jeton TMDB dans Outils → Jeton TMDB pour utiliser Découvrir.');
   const genres=await quickTmdbApi('/genre/movie/list',{language:'fr-FR'});
   discoverOptions('#discoverGenres',genres.genres||[],x=>x.id,x=>x.name);
+  $('#discoverGenres').insertAdjacentHTML('afterbegin','<option value="">Tous les genres</option>');
   discoverMetaReady=true;
   if(discoverPendingKeyword){discoverKeywordIds=[discoverPendingKeyword];discoverPendingKeyword=null;renderDiscoverKeywords();loadDiscover(true)}else status.textContent='Choisis tes critères puis lance la recherche.';
  }catch(error){status.className='bad';status.textContent=error.message||String(error)}
