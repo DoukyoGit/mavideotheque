@@ -806,28 +806,68 @@ async function quickTmdbApi(path,params={}){if(!quickTmdb||!/^[A-Za-z0-9._-]+$/.
 
 const DISCOVER_PRESETS={
  hk:{label:'Meilleurs films hongkongais',params:{with_origin_country:'HK'}},
- action:{label:'Meilleurs films d’action',params:{with_genres:'28'}},
- scifi:{label:'Meilleurs films de science-fiction',params:{with_genres:'878'}},
  japan:{label:'Meilleurs films japonais',params:{with_origin_country:'JP'}},
- france:{label:'Meilleurs films français',params:{with_origin_country:'FR'}}
+ korea:{label:'Meilleurs films sud-coréens',params:{with_origin_country:'KR'}},
+ china:{label:'Meilleurs films chinois',params:{with_origin_country:'CN'}},
+ india:{label:'Meilleurs films indiens',params:{with_origin_country:'IN'}},
+ france:{label:'Meilleurs films français',params:{with_origin_country:'FR'}},
+ action:{label:'Meilleurs films d’action',params:{with_genres:'28'}},
+ combat:{label:'Meilleurs films de combats et arts martiaux',params:{with_genres:'28',with_keywords:'779'}},
+ war:{label:'Meilleurs films de guerre',params:{with_genres:'10752'}},
+ crime:{label:'Meilleurs polars et films criminels',params:{with_genres:'80'}},
+ thriller:{label:'Meilleurs thrillers',params:{with_genres:'53'}},
+ adventure:{label:'Meilleurs films d’aventure',params:{with_genres:'12'}},
+ western:{label:'Meilleurs westerns',params:{with_genres:'37'}},
+ scifi:{label:'Meilleurs films de science-fiction',params:{with_genres:'878'}},
+ fantasy:{label:'Meilleurs films fantastiques',params:{with_genres:'14'}},
+ horror:{label:'Meilleurs films d’horreur',params:{with_genres:'27'}},
+ animation:{label:'Meilleurs films d’animation',params:{with_genres:'16'}},
+ comedy:{label:'Meilleures comédies',params:{with_genres:'35'}},
+ drama:{label:'Meilleurs drames',params:{with_genres:'18'}},
+ romance:{label:'Meilleurs films romantiques',params:{with_genres:'10749'}}
 };
-let discoverInitialized=false,discoverPage=1,discoverBusy=false,discoverSequence=0,discoverItems=[];
+let discoverInitialized=false,discoverPage=1,discoverBusy=false,discoverSequence=0,discoverItems=[],discoverTotal=0;
 function renderDiscoverShell(){
- $('#discover').innerHTML='<div class="topbar"><button class="btn alt" id="discoverBack" type="button">← Ma vidéothèque</button></div><h1>Découvrir</h1><p class="discover-intro">Explore les films les mieux notés sur TMDB. Les films déjà présents dans ta vidéothèque sont signalés.</p><div class="discover-controls"><label>Sélection<select id="discoverPreset">'+Object.entries(DISCOVER_PRESETS).map(([k,v])=>'<option value="'+k+'">'+esc(v.label)+'</option>').join('')+'</select></label><label>Votes minimum<select id="discoverVotes"><option value="100">100 votes</option><option value="500" selected>500 votes</option><option value="1000">1 000 votes</option><option value="5000">5 000 votes</option></select></label></div><div id="discoverStatus" role="status" aria-live="polite">Préparation…</div><div id="discoverGrid"></div><button id="discoverMore" class="btn alt hide" type="button">Afficher plus</button>';
+ $('#discover').innerHTML='<div class="topbar"><button class="btn alt" id="discoverBack" type="button">← Ma vidéothèque</button></div><h1>Découvrir</h1><p class="discover-intro">Explore les classements TMDB par genre et par pays. Les films de ta vidéothèque sont signalés ; tu peux masquer ceux que tu as déjà vus.</p><div class="discover-controls"><label>Sélection<select id="discoverPreset">'+Object.entries(DISCOVER_PRESETS).map(([k,v])=>'<option value="'+k+'">'+esc(v.label)+'</option>').join('')+'</select></label><label>Votes minimum<select id="discoverVotes"><option value="100">100 votes</option><option value="500" selected>500 votes</option><option value="1000">1 000 votes</option><option value="5000">5 000 votes</option></select></label><button id="discoverHideWatched" class="btn alt" type="button" aria-pressed="false">Masquer les films vus</button></div><div id="discoverStatus" role="status" aria-live="polite">Préparation…</div><div id="discoverGrid"></div><button id="discoverMore" class="btn alt hide" type="button">Afficher plus</button>';
  $('#discoverPreset').value='hk';
+ refreshDiscoverWatchedIds();
  $('#discoverBack').addEventListener('click',()=>{location.hash=''});
  $('#discoverPreset').addEventListener('change',()=>loadDiscover(true));
  $('#discoverVotes').addEventListener('change',()=>loadDiscover(true));
+ $('#discoverHideWatched').addEventListener('click',()=>{
+  discoverHideWatched=!discoverHideWatched;
+  const button=$('#discoverHideWatched');
+  button.setAttribute('aria-pressed',String(discoverHideWatched));
+  button.textContent=discoverHideWatched?'Afficher les films vus':'Masquer les films vus';
+  renderDiscoverResults();
+ });
  $('#discoverMore').addEventListener('click',()=>loadDiscover(false));
+}
+let discoverHideWatched=false;
+const discoverWatchedIds=new Set();
+function refreshDiscoverWatchedIds(){
+ discoverWatchedIds.clear();
+ ALL.filter(f=>f.w).forEach(f=>{
+  const id=String(f.id||'').replace(/^t/,'');
+  if(id)discoverWatchedIds.add(id);
+ });
 }
 function discoverCard(movie){
  const id=Number(movie.id),title=movie.title||movie.original_title||'Film sans titre',year=(movie.release_date||'').slice(0,4),rating=Number(movie.vote_average),votes=Number(movie.vote_count)||0;
  const inLibrary=ALL.some(f=>String(f.id)==='t'+id),poster=movie.poster_path?'<img loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342'+esc(movie.poster_path)+'" alt="">':'<div class="noimg">'+esc(title.slice(0,2))+'</div>';
- return '<a class="card" href="#film/t'+id+'"><div class="poster">'+poster+(Number.isFinite(rating)?'<span class="badge tmdb">'+rating.toFixed(1).replace('.',',')+'</span>':'')+'</div><div class="card-heading"><h2>'+esc(title)+'</h2></div><div class="meta">'+esc(year||'Année inconnue')+' · '+votes.toLocaleString('fr-FR')+' votes</div>'+(inLibrary?'<div class="discover-library">Déjà dans ma vidéothèque</div>':'')+'</a>';
+ return '<a class="card" href="#film/t'+id+'"><div class="poster">'+poster+(Number.isFinite(rating)?'<span class="badge tmdb">'+rating.toFixed(1).replace('.',',')+'</span>':'')+'</div><div class="card-heading"><h2>'+esc(title)+'</h2></div><div class="meta">'+esc(year||'Année inconnue')+' · '+votes.toLocaleString('fr-FR')+' votes</div>'+(inLibrary?'<div class="discover-library">Dans ma vidéothèque</div>':'')+'</a>';
+}
+function renderDiscoverResults(){
+ const visible=discoverHideWatched?discoverItems.filter(movie=>!discoverWatchedIds.has(String(movie.id))):discoverItems;
+ $('#discoverGrid').innerHTML=visible.map(discoverCard).join('');
+ const preset=DISCOVER_PRESETS[$('#discoverPreset').value]||DISCOVER_PRESETS.hk;
+ const hidden=discoverItems.length-visible.length;
+ const total=discoverTotal||discoverItems.length;
+ $('#discoverStatus').textContent=visible.length+' film(s) affiché(s) sur '+total.toLocaleString('fr-FR')+(hidden?' · '+hidden+' film(s) déjà vu(s) masqué(s)':'')+' · '+preset.label.toLowerCase()+' · au moins '+Number($('#discoverVotes').value).toLocaleString('fr-FR')+' votes';
 }
 async function loadDiscover(reset){
  if(discoverBusy)return;
- if(reset){discoverPage=1;discoverItems=[];discoverSequence++;$('#discoverGrid').innerHTML='';$('#discoverMore').classList.add('hide')}
+ if(reset){discoverPage=1;discoverItems=[];discoverTotal=0;discoverSequence++;$('#discoverGrid').innerHTML='';$('#discoverMore').classList.add('hide')}
  const seq=discoverSequence;
  discoverBusy=true;
  const status=$('#discoverStatus'),more=$('#discoverMore');
@@ -839,9 +879,8 @@ async function loadDiscover(reset){
   if(seq!==discoverSequence)return;
   const results=Array.isArray(data.results)?data.results:[];
   discoverItems.push(...results);
-  $('#discoverGrid').insertAdjacentHTML('beforeend',results.map(discoverCard).join(''));
-  const count=discoverItems.length,total=Number(data.total_results)||count;
-  status.textContent=count+' film(s) affiché(s) sur '+total.toLocaleString('fr-FR')+' · '+preset.label.toLowerCase()+' · au moins '+Number($('#discoverVotes').value).toLocaleString('fr-FR')+' votes';
+  discoverTotal=Number(data.total_results)||discoverItems.length;
+  renderDiscoverResults();
   discoverPage++;
   more.classList.toggle('hide',discoverPage>Math.min(Number(data.total_pages)||1,500)||!results.length);
  }catch(error){if(seq===discoverSequence){status.className='bad';status.textContent=error.message||String(error)}}
