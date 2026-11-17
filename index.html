@@ -633,7 +633,7 @@ async function showDetail(id){
     if(location.hash!==canonicalHash)history.replaceState(null,'',location.pathname+location.search+canonicalHash);
     el.innerHTML=detailHTML(f);
     document.title=filmTitle+' · Ma vidéothèque';
-  }catch(e){if(location.hash!=='#film/'+id)return;el.innerHTML='<div class="topbar"><button class="btn alt" id="back" type="button">Ma vidéothèque</button></div><p class="mute">Impossible d’afficher ce film : '+esc(e.message)+'</p>'}
+  }catch(e){if(currentFilmRouteId()!==String(id))return;el.innerHTML='<div class="topbar"><button class="btn alt" id="back" type="button">Ma vidéothèque</button></div><p class="mute">Impossible d’afficher ce film : '+esc(e.message)+'</p>'}
 }
 
 async function showSaga(id){
