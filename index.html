@@ -656,11 +656,11 @@ async function showSaga(id){
   const bd=saga.backdrop_path?'style="--bd:url('+IMG+'w1280'+saga.backdrop_path+')"':'';
   const poster=saga.poster_path?'<img class="dposter" src="'+IMG+'w500'+saga.poster_path+'" alt="Affiche de '+esc(saga.name)+'">':'';
   const cards=matches.map(({m,film})=>{
-   const href=film?'#film/'+film.id:'https://www.themoviedb.org/movie/'+m.id;
    const title=m.title||m.original_title||'Film sans titre';
+   const href=filmHref('t'+m.id,title);
    const release=m.release_date?fmtLong(m.release_date):'Date de sortie inconnue';
    const img=m.poster_path?'<img loading="lazy" decoding="async" src="'+IMG+'w342'+m.poster_path+'" alt="">':'<div class="noimg">'+esc(title.slice(0,2))+'</div>';
-   return '<a class="saga-row" href="'+esc(href)+'"'+(!film?' target="_blank" rel="noopener"':'')+'>'+
+   return '<a class="saga-row" href="'+esc(href)+'">'+
     '<div class="saga-cover">'+img+
      '<div class="saga-ratings">'+
       (m.vote_average!=null?'<span class="badge tmdb" title="Note moyenne TMDB">'+fmtR(Number(m.vote_average))+'</span>':'')+
