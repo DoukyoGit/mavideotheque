@@ -318,6 +318,20 @@ header .bar{width:100%;margin:0}
  .saga-row{grid-template-columns:min(34%,150px) minmax(0,1fr);gap:14px 16px}
  .saga-row .saga-overview{-webkit-line-clamp:5;font-size:.88rem;line-height:1.45}
 }
+
+#discover{max-width:1400px;margin:0 auto;padding:0 14px 50px}
+#discover h1{font:600 clamp(1.6rem,4vw,2.2rem)/1.1 Georgia,"Times New Roman",serif;margin:8px 0}
+.discover-intro{color:var(--mute);margin:4px 0 16px}
+.discover-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin:14px 0 18px}
+.discover-controls label{display:flex;flex-direction:column;gap:4px;color:var(--mute);font-size:.8rem}
+.discover-controls select{min-width:180px;min-height:42px}
+#discoverGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:18px 14px}
+#discoverStatus{padding:12px 0;color:var(--mute)}
+#discoverStatus.bad{color:#c62828}
+#discoverMore{display:block;margin:24px auto 0}
+.discover-library{font-size:.76rem;color:var(--acc);font-weight:650}
+@media(max-width:520px){#discover{padding:0 12px 50px}#discoverGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 11px}.discover-controls{display:grid;grid-template-columns:1fr 1fr}.discover-controls label:first-child{grid-column:1/-1}.discover-controls select{width:100%;min-width:0}}
+
 </style>
 </head>
 <body>
@@ -325,7 +339,7 @@ header .bar{width:100%;margin:0}
 
 <header>
   <div class="bar brandbar">
-    <h1>Ma vidéothèque</h1><div class="head-actions"><a class="icon-btn" href="./#stats" aria-label="Statistiques" title="Statistiques"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20v-8M12 20V5M19 20v-5"/></svg></a><a class="icon-btn" href="tools.html" aria-label="Paramètres et outils" title="Paramètres et outils"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></a></div>
+    <h1>Ma vidéothèque</h1><div class="head-actions"><a class="icon-btn" href="./#discover" aria-label="Découvrir" title="Découvrir"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2.2 4.8-4.8 2.2 2.2-4.8 4.8-2.2Z"/></svg></a><a class="icon-btn" href="./#stats" aria-label="Statistiques" title="Statistiques"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20v-8M12 20V5M19 20v-5"/></svg></a><a class="icon-btn" href="tools.html" aria-label="Paramètres et outils" title="Paramètres et outils"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></a></div>
   </div>
   <div class="bar"><input id="q" type="search" placeholder="Rechercher un film sur TMDB…" aria-label="Rechercher un film sur TMDB"></div>
   <div class="bar home-controls">
@@ -355,6 +369,7 @@ header .bar{width:100%;margin:0}
 </main>
 <section id="detail" class="hide" aria-live="polite"></section>
 <section id="stats" class="hide"></section>
+<section id="discover" class="hide" aria-live="polite"></section>
 
 <script src="mavideotheque-db.js?v=20261115-settings2"></script>
 <script>
@@ -698,14 +713,14 @@ $('#detail').addEventListener('keydown',e=>{
 });
 
 function route(){
-  const m=location.hash.match(/^#film\/([\w-]+)$/),s=location.hash.match(/^#saga\/(\d+)$/),isSt=location.hash==='#stats',was=document.body.classList.contains('indetail');
-  if(m||s||isSt){
+  const m=location.hash.match(/^#film\/([\w-]+)$/),s=location.hash.match(/^#saga\/(\d+)$/),isSt=location.hash==='#stats',isDiscover=location.hash==='#discover',was=document.body.classList.contains('indetail');
+  if(m||s||isSt||isDiscover){
     if(!was)gridScroll=window.scrollY;
     document.body.classList.add('indetail');window.scrollTo(0,0);
-    $('#detail').classList.toggle('hide',!(m||s));$('#stats').classList.toggle('hide',!isSt);
-    if(m)showDetail(m[1]);else if(s)showSaga(s[1]);else showStats();
+    $('#detail').classList.toggle('hide',!(m||s));$('#stats').classList.toggle('hide',!isSt);$('#discover').classList.toggle('hide',!isDiscover);
+    if(m)showDetail(m[1]);else if(s)showSaga(s[1]);else if(isSt)showStats();else showDiscover();
   }else{
-    document.body.classList.remove('indetail');$('#detail').classList.add('hide');$('#stats').classList.add('hide');document.title='Ma vidéothèque';
+    document.body.classList.remove('indetail');$('#detail').classList.add('hide');$('#stats').classList.add('hide');$('#discover').classList.add('hide');document.title='Ma vidéothèque';
     if(was)window.scrollTo(0,gridScroll);
   }
 }
@@ -788,6 +803,54 @@ $('#stats').addEventListener('click',e=>{
 let quickTmdb='',searchTimer=null,searchSequence=0,searchBusy=false;
 async function quickTokenState(){try{quickTmdb=await window.VideothequeDB.getSetting('tmdbToken')||''}catch(e){quickTmdb=''}$('#tmdbMissingAlert').hidden=!!quickTmdb;return !!quickTmdb}
 async function quickTmdbApi(path,params={}){if(!quickTmdb||!/^[A-Za-z0-9._-]+$/.test(quickTmdb.trim()))throw Error('Jeton TMDB invalide : vérifie Outils → Jeton TMDB.');const u=new URL('https://api.themoviedb.org/3'+path);Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));const r=await fetch(u.href,{headers:{Authorization:'Bearer '+quickTmdb.trim()}});if(!r.ok)throw Error(r.status===401?'Jeton TMDB invalide ou expiré.':'Erreur TMDB '+r.status+'.');return r.json()}
+
+const DISCOVER_PRESETS={
+ hk:{label:'Meilleurs films hongkongais',params:{with_origin_country:'HK'}},
+ action:{label:'Meilleurs films d’action',params:{with_genres:'28'}},
+ scifi:{label:'Meilleurs films de science-fiction',params:{with_genres:'878'}},
+ japan:{label:'Meilleurs films japonais',params:{with_origin_country:'JP'}},
+ france:{label:'Meilleurs films français',params:{with_origin_country:'FR'}}
+};
+let discoverInitialized=false,discoverPage=1,discoverBusy=false,discoverSequence=0,discoverItems=[];
+function renderDiscoverShell(){
+ $('#discover').innerHTML='<div class="topbar"><button class="btn alt" id="discoverBack" type="button">← Ma vidéothèque</button></div><h1>Découvrir</h1><p class="discover-intro">Explore les films les mieux notés sur TMDB. Les films déjà présents dans ta vidéothèque sont signalés.</p><div class="discover-controls"><label>Sélection<select id="discoverPreset">'+Object.entries(DISCOVER_PRESETS).map(([k,v])=>'<option value="'+k+'">'+esc(v.label)+'</option>').join('')+'</select></label><label>Votes minimum<select id="discoverVotes"><option value="100">100 votes</option><option value="500" selected>500 votes</option><option value="1000">1 000 votes</option><option value="5000">5 000 votes</option></select></label></div><div id="discoverStatus" role="status" aria-live="polite">Préparation…</div><div id="discoverGrid"></div><button id="discoverMore" class="btn alt hide" type="button">Afficher plus</button>';
+ $('#discoverPreset').value='hk';
+ $('#discoverBack').addEventListener('click',()=>{location.hash=''});
+ $('#discoverPreset').addEventListener('change',()=>loadDiscover(true));
+ $('#discoverVotes').addEventListener('change',()=>loadDiscover(true));
+ $('#discoverMore').addEventListener('click',()=>loadDiscover(false));
+}
+function discoverCard(movie){
+ const id=Number(movie.id),title=movie.title||movie.original_title||'Film sans titre',year=(movie.release_date||'').slice(0,4),rating=Number(movie.vote_average),votes=Number(movie.vote_count)||0;
+ const inLibrary=ALL.some(f=>String(f.id)==='t'+id),poster=movie.poster_path?'<img loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342'+esc(movie.poster_path)+'" alt="">':'<div class="noimg">'+esc(title.slice(0,2))+'</div>';
+ return '<a class="card" href="#film/t'+id+'"><div class="poster">'+poster+(Number.isFinite(rating)?'<span class="badge tmdb">'+rating.toFixed(1).replace('.',',')+'</span>':'')+'</div><div class="card-heading"><h2>'+esc(title)+'</h2></div><div class="meta">'+esc(year||'Année inconnue')+' · '+votes.toLocaleString('fr-FR')+' votes</div>'+(inLibrary?'<div class="discover-library">Déjà dans ma vidéothèque</div>':'')+'</a>';
+}
+async function loadDiscover(reset){
+ if(discoverBusy)return;
+ if(reset){discoverPage=1;discoverItems=[];discoverSequence++;$('#discoverGrid').innerHTML='';$('#discoverMore').classList.add('hide')}
+ const seq=discoverSequence;
+ discoverBusy=true;
+ const status=$('#discoverStatus'),more=$('#discoverMore');
+ status.className='';status.textContent=reset?'Recherche TMDB…':'Chargement de la suite…';more.disabled=true;
+ try{
+  if(!await quickTokenState())throw Error('Configure ton jeton TMDB dans Outils → Jeton TMDB pour utiliser Découvrir.');
+  const preset=DISCOVER_PRESETS[$('#discoverPreset').value]||DISCOVER_PRESETS.hk;
+  const data=await quickTmdbApi('/discover/movie',{language:'fr-FR',include_adult:'false',sort_by:'vote_average.desc','vote_count.gte':$('#discoverVotes').value,page:String(discoverPage),...preset.params});
+  if(seq!==discoverSequence)return;
+  const results=Array.isArray(data.results)?data.results:[];
+  discoverItems.push(...results);
+  $('#discoverGrid').insertAdjacentHTML('beforeend',results.map(discoverCard).join(''));
+  const count=discoverItems.length,total=Number(data.total_results)||count;
+  status.textContent=count+' film(s) affiché(s) sur '+total.toLocaleString('fr-FR')+' · '+preset.label.toLowerCase()+' · au moins '+Number($('#discoverVotes').value).toLocaleString('fr-FR')+' votes';
+  discoverPage++;
+  more.classList.toggle('hide',discoverPage>Math.min(Number(data.total_pages)||1,500)||!results.length);
+ }catch(error){if(seq===discoverSequence){status.className='bad';status.textContent=error.message||String(error)}}
+ finally{if(seq===discoverSequence){discoverBusy=false;more.disabled=false}}
+}
+function showDiscover(){
+ document.title='Découvrir · Ma vidéothèque';
+ if(!discoverInitialized){discoverInitialized=true;renderDiscoverShell();loadDiscover(true)}
+}
 function searchStatus(message,kind=''){const el=$('#tmdbSearchStatus');el.textContent=message;el.className='mute '+kind}
 function renderSearchResults(hits){$('#tmdbSearchResults').innerHTML=hits.map(x=>'<button class="tmdb-result" type="button" data-tmdb-movie="'+Number(x.id)+'">'+(x.poster_path?'<img alt="" loading="lazy" src="https://image.tmdb.org/t/p/w185'+esc(x.poster_path)+'">':'<div></div>')+'<span><b>'+esc(x.title||x.original_title||'Film sans titre')+'</b><p>'+esc((x.release_date||'').slice(0,4)||'Année inconnue')+' · '+esc((x.overview||'').slice(0,120))+'</p><small>Voir le détail</small></span></button>').join('')}
 const SEARCH_CACHE_KEY='tmdbSearchCache',SEARCH_CACHE_TTL=7*24*60*60*1000,SEARCH_CACHE_LIMIT=50;
