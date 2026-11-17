@@ -9,6 +9,7 @@ Application web statique de gestion d’une vidéothèque personnelle.
 
 - Catalogue personnel : recherche, filtres, tri et statistiques.
 - Recherche de films et fiches détaillées via TMDB.
+- Découverte de classements TMDB par pays et par genre, avec seuil de votes et repérage des films déjà présents.
 - Ajout explicite des films au catalogue.
 - Notes personnelles et dates de visionnage.
 - Export CSV compatible avec Letterboxd.
