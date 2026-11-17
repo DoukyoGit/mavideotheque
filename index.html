@@ -645,7 +645,9 @@ async function showSaga(id){
   if(!/^\d+$/.test(String(id)))throw new Error('Identifiant de saga invalide.');
   const saga=await getSagaRecord(id);
   if(currentSagaRouteId()!==String(id))return;
-  const sagaName=saga.name||'Saga',canonicalHash=sagaHref(id,sagaName);\n  if(location.hash!==canonicalHash)history.replaceState(null,'',location.pathname+location.search+canonicalHash);\n  const parts=[...(saga.parts||[])].sort((a,b)=>(a.release_date||'9999').localeCompare(b.release_date||'9999'));
+  const sagaName=saga.name||'Saga',canonicalHash=sagaHref(id,sagaName);
+  if(location.hash!==canonicalHash)history.replaceState(null,'',location.pathname+location.search+canonicalHash);
+  const parts=[...(saga.parts||[])].sort((a,b)=>(a.release_date||'9999').localeCompare(b.release_date||'9999'));
   const matches=parts.map(m=>{
    const exact='t'+m.id,film=ALL.find(a=>a.id===exact)||ALL.find(a=>a.id.startsWith(exact+'-')||a.id.startsWith(exact+'_'));
    return {m,film};
