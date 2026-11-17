@@ -322,21 +322,21 @@ header .bar{width:100%;margin:0}
 #discover{max-width:1400px;margin:0 auto;padding:0 14px 50px}
 #discover h1{font:600 clamp(1.6rem,4vw,2.2rem)/1.1 Georgia,"Times New Roman",serif;margin:8px 0}
 .discover-intro{color:var(--mute);margin:4px 0 16px}
-.discover-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:16px 0}
+.discover-filters{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
 .discover-field{display:flex;flex-direction:column;gap:5px;min-width:0;color:var(--mute);font-size:.82rem}
 .discover-field select,.discover-field input{width:100%;min-width:0;min-height:42px}
-.discover-field select[multiple]{min-height:116px;padding:6px}
+.discover-field select[multiple]{min-height:112px;padding:6px}
 .discover-field small{font-size:.74rem;color:var(--mute)}
-.discover-range{display:flex;gap:7px;align-items:center}
-.discover-range input{width:100%;min-width:0}
+.discover-field.wide{grid-column:1/-1}
 .discover-keyword{display:flex;gap:6px}
 .discover-keyword input{flex:1;min-width:0}
 #discoverKeywordResults{display:grid;gap:4px;margin-top:5px}
-.discover-keyword-result{padding:6px 9px;text-align:left;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--ink);cursor:pointer}
+.discover-keyword-result{padding:7px 9px;text-align:left;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--ink);cursor:pointer}
 #discoverKeywords{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .discover-keyword-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:3px 8px;font-size:.78rem;color:var(--ink)}
 .discover-keyword-chip button{border:0;background:transparent;color:var(--mute);padding:0;cursor:pointer;font-size:1rem}
 .discover-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0}
+@media(max-width:520px){#discover{padding:0 12px 50px}.discover-filters{grid-template-columns:1fr}.discover-field.wide{grid-column:auto}.discover-actions{display:grid;grid-template-columns:1fr 1fr}.discover-actions #discoverHideWatched{grid-column:1/-1}.discover-keyword{align-items:stretch}.discover-keyword .btn{padding:8px 10px;font-size:.88rem}}
 #discoverGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:18px 14px}
 #discoverStatus{padding:12px 0;color:var(--mute)}
 #discoverStatus.bad{color:#c62828}
@@ -825,7 +825,7 @@ const DISCOVER_SORTS=[
 ];
 let discoverInitialized=false,discoverPage=1,discoverBusy=false,discoverSequence=0,discoverItems=[],discoverTotal=0,discoverMetaReady=false,discoverKeywordIds=[];
 function renderDiscoverShell(){
- $('#discover').innerHTML='<div class="topbar"><button class="btn alt" id="discoverBack" type="button">← Ma vidéothèque</button></div><h1>Découvrir</h1><p class="discover-intro">Compose librement ta recherche parmi les critères TMDB. Les films de ta vidéothèque sont signalés ; tu peux masquer ceux que tu as déjà vus. Seuls les films ayant au moins 500 votes sont proposés.</p><div class="discover-filters"><label class="discover-field">Pays de production <select id="discoverCountries" multiple aria-label="Pays de production"></select><small>Plusieurs pays : au moins un doit correspondre.</small></label><label class="discover-field">Genres <select id="discoverGenres" multiple aria-label="Genres"></select><small>Plusieurs genres : au moins un doit correspondre.</small></label><label class="discover-field">Langue originale <select id="discoverLanguages" multiple aria-label="Langues originales"></select></label><div class="discover-field wide"><span>Mots-clés TMDB</span><div class="discover-keyword"><input id="discoverKeywordQuery" type="search" placeholder="Rechercher un mot-clé"><button class="btn alt" id="discoverKeywordSearch" type="button">Rechercher</button></div><div id="discoverKeywordResults"></div><div id="discoverKeywords"></div></div><label class="discover-field">Popularité minimale <input id="discoverPopularityMin" type="number" min="0" step="any" placeholder="Sans minimum"></label><label class="discover-field">Popularité maximale <input id="discoverPopularityMax" type="number" min="0" step="any" placeholder="Sans maximum"></label><label class="discover-field">Durée minimale (minutes) <input id="discoverRuntimeMin" type="number" min="0" step="1" placeholder="Sans minimum"></label><label class="discover-field">Durée maximale (minutes) <input id="discoverRuntimeMax" type="number" min="0" step="1" placeholder="Sans maximum"></label><label class="discover-field wide">Trier les résultats <select id="discoverSort">'+DISCOVER_SORTS.map(x=>'<option value="'+x[0]+'">'+esc(x[1])+'</option>').join('')+'</select></label></div><div class="discover-actions"><button id="discoverSearch" class="btn" type="button">Rechercher les films</button><button id="discoverReset" class="btn alt" type="button">Réinitialiser</button><button id="discoverHideWatched" class="btn alt" type="button" aria-pressed="false">Masquer les films vus</button></div><div id="discoverStatus" role="status" aria-live="polite">Préparation…</div><div id="discoverGrid"></div><button id="discoverMore" class="btn alt hide" type="button">Afficher plus</button>';
+ $('#discover').innerHTML='<div class="topbar"><button class="btn alt" id="discoverBack" type="button">← Ma vidéothèque</button></div><h1>Découvrir</h1><p class="discover-intro">Compose librement ta recherche parmi les critères TMDB. Les films de ta vidéothèque sont signalés ; tu peux masquer ceux que tu as déjà vus. Seuls les films ayant au moins 500 votes sont proposés.</p><div class="discover-filters"><label class="discover-field">Genres <select id="discoverGenres" multiple aria-label="Genres"></select><small>Plusieurs genres : au moins un doit correspondre.</small></label><div class="discover-field wide"><span>Mots-clés TMDB</span><div class="discover-keyword"><input id="discoverKeywordQuery" type="search" placeholder="Rechercher un mot-clé"><button class="btn alt" id="discoverKeywordSearch" type="button">Rechercher</button></div><div id="discoverKeywordResults"></div><div id="discoverKeywords"></div></div><label class="discover-field wide">Trier les résultats <select id="discoverSort">'+DISCOVER_SORTS.map(x=>'<option value="'+x[0]+'">'+esc(x[1])+'</option>').join('')+'</select></label></div><div class="discover-actions"><button id="discoverSearch" class="btn" type="button">Rechercher les films</button><button id="discoverReset" class="btn alt" type="button">Réinitialiser</button><button id="discoverHideWatched" class="btn alt" type="button" aria-pressed="false">Masquer les films vus</button></div><div id="discoverStatus" role="status" aria-live="polite">Préparation…</div><div id="discoverGrid"></div><button id="discoverMore" class="btn alt hide" type="button">Afficher plus</button>';
  refreshDiscoverWatchedIds();
  $('#discoverBack').addEventListener('click',()=>{location.hash=''});
  $('#discoverSearch').addEventListener('click',()=>loadDiscover(true));
@@ -856,14 +856,8 @@ async function loadDiscoverMetadata(){
  const status=$('#discoverStatus');
  try{
   if(!await quickTokenState())throw Error('Configure ton jeton TMDB dans Outils → Jeton TMDB pour utiliser Découvrir.');
-  const [genres,countries,languages]=await Promise.all([
-   quickTmdbApi('/genre/movie/list',{language:'fr-FR'}),
-   quickTmdbApi('/configuration/countries',{language:'fr-FR'}),
-   quickTmdbApi('/configuration/languages')
-  ]);
+  const genres=await quickTmdbApi('/genre/movie/list',{language:'fr-FR'});
   discoverOptions('#discoverGenres',genres.genres||[],x=>x.id,x=>x.name);
-  discoverOptions('#discoverCountries',(countries||[]).sort((a,b)=>(a.native_name||a.english_name||'').localeCompare(b.native_name||b.english_name||'','fr')),x=>x.iso_3166_1,x=>x.native_name||x.english_name||x.iso_3166_1);
-  discoverOptions('#discoverLanguages',(languages||[]).filter(x=>x.iso_639_1).sort((a,b)=>(a.english_name||'').localeCompare(b.english_name||'')),x=>x.iso_639_1,x=>(x.english_name||x.name||x.iso_639_1)+' ('+x.iso_639_1+')');
   discoverMetaReady=true;status.textContent='Choisis tes critères puis lance la recherche.';
  }catch(error){status.className='bad';status.textContent=error.message||String(error)}
 }
@@ -886,19 +880,15 @@ $('#discover').addEventListener('click',e=>{
  if(remove){discoverKeywordIds=discoverKeywordIds.filter(x=>x.id!==Number(remove.dataset.removeKeyword));renderDiscoverKeywords()}
 });
 function resetDiscoverFilters(){
- ['#discoverCountries','#discoverGenres','#discoverLanguages'].forEach(id=>Array.from($(id).options).forEach(o=>o.selected=false));
- ['#discoverPopularityMin','#discoverPopularityMax','#discoverRuntimeMin','#discoverRuntimeMax'].forEach(id=>$(id).value='');
+ Array.from($('#discoverGenres').options).forEach(o=>o.selected=false);
  $('#discoverSort').value='vote_average.desc';$('#discoverKeywordQuery').value='';$('#discoverKeywordResults').innerHTML='';discoverKeywordIds=[];renderDiscoverKeywords();loadDiscover(true);
 }
 function discoverSelected(id){return Array.from($(id).selectedOptions).map(o=>o.value).filter(Boolean)}
 function discoverParams(){
  const params={language:'fr-FR',include_adult:'false',sort_by:$('#discoverSort').value,'vote_count.gte':'500',page:String(discoverPage)};
- const countries=discoverSelected('#discoverCountries'),genres=discoverSelected('#discoverGenres'),languages=discoverSelected('#discoverLanguages');
- if(countries.length)params.with_origin_country=countries.join(',');
+ const genres=discoverSelected('#discoverGenres');
  if(genres.length)params.with_genres=genres.join(',');
- if(languages.length)params.with_original_language=languages.join(',');
  if(discoverKeywordIds.length)params.with_keywords=discoverKeywordIds.map(x=>x.id).join(',');
- [['#discoverPopularityMin','popularity.gte'],['#discoverPopularityMax','popularity.lte'],['#discoverRuntimeMin','with_runtime.gte'],['#discoverRuntimeMax','with_runtime.lte']].forEach(([id,key])=>{const value=$(id).value.trim();if(value!==''&&Number.isFinite(Number(value))&&Number(value)>=0)params[key]=value});
  return params;
 }
 function discoverCard(movie){
