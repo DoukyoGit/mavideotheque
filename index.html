@@ -896,8 +896,8 @@ function discoverParams(){
 function discoverCard(movie){
  const id=Number(movie.id),title=movie.title||movie.original_title||'Film sans titre',year=(movie.release_date||'').slice(0,4),rating=Number(movie.vote_average),votes=Number(movie.vote_count)||0;
  const libraryFilm=ALL.find(f=>String(f.id)==='t'+id),inLibrary=!!libraryFilm,poster=movie.poster_path?'<img loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342'+esc(movie.poster_path)+'" alt="">':'<div class="noimg">'+esc(title.slice(0,2))+'</div>';
- const personalRating=libraryFilm&&libraryFilm.r!=null?'<span class="badge personal-rating '+rcls(Number(libraryFilm.r))+'" title="Ma note : '+fmtR(libraryFilm.r)+' / 10">'+fmtR(libraryFilm.r)+'<small>/10</small></span>':'';
- return '<a class="card" href="#film/t'+id+'"><div class="poster">'+poster+(Number.isFinite(rating)?'<span class="badge tmdb">'+rating.toFixed(1).replace('.',',')+'</span>':'')+'</div><div class="card-heading"><h2>'+esc(title)+'</h2>'+personalRating+'</div><div class="meta">'+esc(year||'Année inconnue')+' · '+votes.toLocaleString('fr-FR')+' votes</div>'+(inLibrary?'<div class="discover-library">Dans ma vidéothèque</div>':'')+'</a>';
+ const personalRating=libraryFilm&&libraryFilm.r!=null?'<span class="badge personal-rating poster-personal-rating '+rcls(Number(libraryFilm.r))+'" title="Ma note : '+fmtR(libraryFilm.r)+' / 10">'+fmtR(libraryFilm.r)+'<small>/10</small></span>':'';
+ return '<a class="card" href="#film/t'+id+'"><div class="poster">'+poster+(Number.isFinite(rating)?'<span class="badge tmdb">'+rating.toFixed(1).replace('.',',')+'</span>':'')+personalRating+'</div><div class="card-heading"><h2>'+esc(title)+'</h2></div><div class="meta">'+esc(year||'Année inconnue')+' · '+votes.toLocaleString('fr-FR')+' votes</div>'+(inLibrary?'<div class="discover-library">Dans ma vidéothèque</div>':'')+'</a>';
 }
 function renderDiscoverResults(){
  const visible=discoverHideWatched?discoverItems.filter(movie=>!discoverWatchedIds.has(String(movie.id))):discoverItems;
