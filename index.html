@@ -584,7 +584,7 @@ function detailHTML(f){
     ${cast.length>20?`<details><summary>Distribution complète (${cast.length})</summary>${cast.map(a=>`<span>${a.id!=null?`<a href='https://www.themoviedb.org/person/${encodeURIComponent(a.id)}' target='_blank' rel='noopener noreferrer'>${esc(a.name)}</a>`:esc(a.name)}${a.character?` <span class='mute'>(${esc(a.character)})</span>`:""}</span>`).join("<br>")}</details>`:""}`:""}
   ${Object.keys(crewBy).length?`<details><summary>Équipe technique complète</summary>${Object.keys(crewBy).sort().map(d=>`<p><b>${esc(d)}</b><br>${[...crewBy[d]].map(([j,n])=>`<span class="mute">${esc(j)} :</span> ${crewNames([...new Set(n)])}`).join('<br>')}</p>`).join('')}</details>`:''}
   ${sim.length?`<h2>Dans le même esprit</h2><div class="strip">${sim.slice(0,18).map(m=>{const id='t'+m.id,inl=lib.has(id);return pcard('#film/'+id,m.poster_path?IMG+'w185'+m.poster_path:null,m.title,(m.release_date||'').slice(0,4),false,inl,m.vote_average)}).join('')}</div>`:''}
-  ${(t.keywords||[]).length?`<h2>Mots-clés</h2><div class="chips">${t.keywords.map(k=>{const kw=(x.keywords||[]).find(q=>q.name===k&&q.id);return kw?`<a class="chip" href="#discover?keyword=${encodeURIComponent(kw.id)}&name=${encodeURIComponent(k)}" title="Découvrir les films associés à ce mot-clé">${esc(k)}</a>`:`<span class="chip">${esc(k)}</span>`}).join('')}</div>`:''}
+  \${(t.keywords||[]).length?(()=>{const keywordIds=new Map((x.keywords||[]).filter(q=>q&&q.id!=null&&q.name).map(q=>[q.name,Number(q.id)]));return '<h2>Mots-clés</h2><div class="chips">'+t.keywords.map(k=>{const id=keywordIds.get(k);return Number.isSafeInteger(id)&&id>0?'<a class="chip" href="#discover?'+new URLSearchParams({keyword:String(id),name:k}).toString()+'" title="Découvrir les films associés à ce mot-clé">'+esc(k)+'</a>':'<span class="chip">'+esc(k)+'</span>'}).join('')+'</div>'})():''}
   ${((x.images||{}).backdrops||[]).length?`<h2>Images</h2><div class="gal">${x.images.backdrops.slice(0,12).map(i=>`<a href="${IMG}original${i.file_path}" target="_blank" rel="noopener"><img loading="lazy" src="${IMG}w300${i.file_path}" alt=""></a>`).join('')}</div>`:''}
 `;
 }
@@ -888,8 +888,8 @@ function resetDiscoverFilters(){
 function discoverSelected(id){return Array.from($(id).selectedOptions).map(o=>o.value).filter(Boolean)}
 function discoverParams(){
  const params={language:'fr-FR',include_adult:'false',sort_by:$('#discoverSort').value,'vote_count.gte':'500',page:String(discoverPage)};
- const genres=discoverSelected('#discoverGenres');
- if(genres.length)params.with_genres=genres.join(',');
+ const genre=$('#discoverGenres').value;
+ if(genre)params.with_genres=genre;
  if(discoverKeywordIds.length)params.with_keywords=discoverKeywordIds.map(x=>x.id).join(',');
  return params;
 }
@@ -926,8 +926,9 @@ async function loadDiscover(reset){
 function showDiscover(keywordId,keywordName){
  document.title='Découvrir · Ma vidéothèque';
  if(!discoverInitialized){discoverInitialized=true;renderDiscoverShell()}
- if(keywordId&&/^\\d+$/.test(keywordId)){
-  const keyword={id:Number(keywordId),name:keywordName||'Mot-clé TMDB'};
+ const id=String(keywordId||'').trim();
+ if(/^\d+$/.test(id)){
+  const keyword={id:Number(id),name:keywordName||'Mot-clé TMDB'};
   if(discoverMetaReady){discoverKeywordIds=[keyword];renderDiscoverKeywords();loadDiscover(true)}else discoverPendingKeyword=keyword;
  }
 }
