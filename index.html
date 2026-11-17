@@ -356,6 +356,11 @@ header .bar{width:100%;margin:0}
 #kodiPage{max-width:1100px;margin:0 auto;padding:0 14px 50px}
 #kodiPage h1{font:600 clamp(1.6rem,4vw,2.2rem)/1.1 Georgia,serif;margin:6px 0 4px}
 .kodi-page-summary{margin:4px 0 18px}
+.kodi-page-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,220px) 46px;gap:8px;align-items:center;margin:14px 0 4px}
+.kodi-page-controls input,.kodi-page-controls select{width:100%;min-height:42px}
+.kodi-page-count{margin:8px 0 12px}
+#kodiGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:18px 14px}
+@media(max-width:520px){.kodi-page-controls{grid-template-columns:minmax(0,1fr) 46px}.kodi-page-controls input{grid-column:1/-1}.kodi-page-controls select{grid-column:1}.kodi-page-controls .sort-direction{grid-column:2;grid-row:2}#kodiGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 11px}}
 .kodi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:18px 14px;margin-top:18px}
 .kodi-card{min-width:0;color:inherit;text-decoration:none;display:flex;flex-direction:column;gap:3px}
 .kodi-card .poster{position:relative;aspect-ratio:2/3;border-radius:8px;overflow:hidden;background:var(--panel);border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.12)}
@@ -756,11 +761,19 @@ async function loadKodiSnapshot(){
   kodiSnapshotSyncedAt=snapshot?.syncedAt||null;
  }catch(error){kodiMoviesSnapshot=[];kodiTmdbIds=new Set();kodiSnapshotSyncedAt=null}
 }
-function renderKodiPage(){
- document.title='Films sur Kodi · Ma vidéothèque';
- const root=$('#kodiPage');
- const date=kodiSnapshotSyncedAt?new Date(kodiSnapshotSyncedAt).toLocaleString('fr-FR'):'';
- const movies=kodiMoviesSnapshot.slice().sort((a,b)=>String(a.title||'').localeCompare(String(b.title||''),'fr',{sensitivity:'base'}));
+let kodiPageQuery='',kodiPageSort='title',kodiPageDirection=1;
+function renderKodiMovies(){
+ const root=$('#kodiPage'),query=norm(kodiPageQuery.trim());
+ const compare=(a,b)=>String(a||'').localeCompare(String(b||''),'fr',{numeric:true,sensitivity:'base'});
+ const movies=kodiMoviesSnapshot.filter(m=>!query||norm([m.title,m.year,m.tmdbId].join(' ')).includes(query));
+ movies.sort((a,b)=>{
+  let result=0;
+  if(kodiPageSort==='year')result=(Number(a.year)||0)-(Number(b.year)||0);
+  else if(kodiPageSort==='playcount')result=(Number(a.playcount)||0)-(Number(b.playcount)||0);
+  else if(kodiPageSort==='lastplayed')result=compare(a.lastplayed||'',b.lastplayed||'');
+  else result=compare(a.title||'',b.title||'');
+  return result*kodiPageDirection||compare(a.title||'',b.title||'');
+ });
  const cards=movies.map(m=>{
   const tmdbId=String(m.tmdbId||''),local=tmdbId?ALL.find(f=>String(f.id).replace(/^t/,'')===tmdbId):null;
   const poster=local&&local.p?'<img loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342'+esc(local.p)+'" alt="">':'<div class="noimg">'+esc(String(m.title||'?').slice(0,2))+'</div>';
@@ -769,8 +782,21 @@ function renderKodiPage(){
   const body='<div class="poster">'+poster+rating+personal+'</div><div class="card-heading"><h2>'+esc(m.title||'Titre inconnu')+'</h2></div><div class="meta">'+(m.year?esc(m.year)+' · ':'')+(m.playcount>0?'Vu dans Kodi':'Pas encore vu dans Kodi')+'</div>';
   return tmdbId?'<a class="kodi-card" href="#film/t'+encodeURIComponent(tmdbId)+'">'+body+'</a>':'<article class="kodi-card">'+body+'<div class="meta">Identifiant TMDB absent</div></article>';
  }).join('');
- root.innerHTML='<div class="topbar"><button class="btn alt" id="kodiPageBack" type="button">← Ma vidéothèque</button></div><h1>Films présents sur Kodi</h1><p class="mute kodi-page-summary">'+movies.length+' film(s) · Dernière synchronisation : '+(date?esc(date):'aucune')+'</p>'+(movies.length?'<div class="kodi-grid">'+cards+'</div>':'<p class="mute">Aucune liste enregistrée. Lance une comparaison avec Kodi dans Outils pour synchroniser les films présents dans sa bibliothèque.</p>');
+ const count=movies.length,empty=kodiMoviesSnapshot.length===0;
+ $('#kodiPageCount').textContent=count+' film(s) affiché(s)'+(query?' sur '+kodiMoviesSnapshot.length:'');
+ $('#kodiGrid').innerHTML=cards||(empty?'<p class="mute">Aucune liste enregistrée. Lance une comparaison avec Kodi dans Outils pour synchroniser les films présents dans sa bibliothèque.</p>':'<p class="mute">Aucun film ne correspond à cette recherche.</p>');
+}
+function renderKodiPage(){
+ document.title='Films sur Kodi · Ma vidéothèque';
+ const root=$('#kodiPage');
+ const date=kodiSnapshotSyncedAt?new Date(kodiSnapshotSyncedAt).toLocaleString('fr-FR'):'';
+ kodiPageQuery='';kodiPageSort='title';kodiPageDirection=1;
+ root.innerHTML='<div class="topbar"><button class="btn alt" id="kodiPageBack" type="button">← Ma vidéothèque</button></div><h1>Films présents sur Kodi</h1><p class="mute kodi-page-summary">Dernière synchronisation : '+(date?esc(date):'aucune')+'</p><div class="kodi-page-controls"><input id="kodiPageSearch" type="search" placeholder="Rechercher un film…" aria-label="Rechercher dans les films Kodi"><select id="kodiPageSort" aria-label="Trier les films Kodi"><option value="title">Titre</option><option value="year">Année</option><option value="playcount">Nombre de lectures Kodi</option><option value="lastplayed">Dernière lecture Kodi</option></select><button class="btn alt sort-direction" id="kodiPageDirection" type="button" aria-label="Inverser l’ordre du tri">↑</button></div><p class="mute kodi-page-count" id="kodiPageCount" aria-live="polite"></p><div id="kodiGrid"></div>';
  $('#kodiPageBack').onclick=()=>{location.hash=''};
+ $('#kodiPageSearch').addEventListener('input',e=>{kodiPageQuery=e.target.value;renderKodiMovies()});
+ $('#kodiPageSort').addEventListener('change',e=>{kodiPageSort=e.target.value;renderKodiMovies()});
+ $('#kodiPageDirection').addEventListener('click',()=>{kodiPageDirection*=-1;$('#kodiPageDirection').textContent=kodiPageDirection===1?'↑':'↓';$('#kodiPageDirection').setAttribute('aria-label',kodiPageDirection===1?'Tri croissant':'Tri décroissant');renderKodiMovies()});
+ renderKodiMovies();
 }
 function route(){
   const m=location.hash.match(/^#film\/([\w-]+)$/),s=location.hash.match(/^#saga\/(\d+)$/),isSt=location.hash==='#stats',isDiscover=location.hash==='#discover'||location.hash.startsWith('#discover?'),isKodi=location.hash==='#kodi',discoverQuery=new URLSearchParams(location.hash.split('?')[1]||''),was=document.body.classList.contains('indetail');
