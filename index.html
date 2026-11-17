@@ -431,11 +431,14 @@ const EYE='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="c
 const monthLabel=m=>{const t=new Date(m+'-01T00:00:00').toLocaleDateString('fr-FR',{month:'long',year:'numeric'});return t.charAt(0).toUpperCase()+t.slice(1)};
 const tmdbRatings=new Map(),tmdbPending=new Set();
 let ratingObserver;
+function filmSlug(title){return String(title||'film').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'film'}
+function filmHref(id,title){return '#film/'+encodeURIComponent(String(id))+'-'+filmSlug(title)}
+function currentFilmRouteId(){const match=location.hash.match(/^#film\/([\w-]+?)(?:-[a-z0-9-]+)?$/i);return match?match[1]:null}
 function card(f,byDate){
   const img=f.p?`<img loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342${f.p}" alt="">`:`<div class="noimg">${esc((f.t||'?').slice(0,2))}</div>`;
   const rating=tmdbRatings.get(f.id),director=(f.d||[]).join(', ');
   const release=f.y?String(f.y):'';
-  return `<a class="card" href="#film/${esc(f.id)}"><div class="poster">${img}
+  return `<a class="card" href="${esc(filmHref(f.id,f.t))}"><div class="poster">${img}
     <span class="badge tmdb${rating==null?' hide':''}" data-tmdb-rating="${esc(f.id)}" title="Note moyenne TMDB">${rating==null?'':fmtR(rating)}</span>
     ${f.r!=null?`<span class="badge personal-rating poster-personal-rating ${f.r>=7?'rg':f.r>=5?'ro':'rr'}" title="Ma note : ${fmtR(f.r)} / 10">${fmtR(f.r)}<small>/10</small></span>`:''}
     ${kodiTmdbIds.has(String(f.id).replace(/^t/,''))?KODI_ICON:''}
@@ -614,7 +617,7 @@ function detailHTML(f){
   ${cast.length?`<h2>Distribution</h2><div class="strip">${cast.slice(0,20).map(a=>pcard('https://www.themoviedb.org/person/'+a.id,a.profile_path?IMG+'w185'+a.profile_path:null,a.name,a.character,true)).join('')}</div>
     ${cast.length>20?`<details><summary>Distribution complète (${cast.length})</summary>${cast.map(a=>`<span>${a.id!=null?`<a href='https://www.themoviedb.org/person/${encodeURIComponent(a.id)}' target='_blank' rel='noopener noreferrer'>${esc(a.name)}</a>`:esc(a.name)}${a.character?` <span class='mute'>(${esc(a.character)})</span>`:""}</span>`).join("<br>")}</details>`:""}`:""}
   ${Object.keys(crewBy).length?`<details><summary>Équipe technique complète</summary>${Object.keys(crewBy).sort().map(d=>`<p><b>${esc(d)}</b><br>${[...crewBy[d]].map(([j,n])=>`<span class="mute">${esc(j)} :</span> ${crewNames([...new Set(n)])}`).join('<br>')}</p>`).join('')}</details>`:''}
-  ${sim.length?`<h2>Dans le même esprit</h2><div class="strip">${sim.slice(0,18).map(m=>{const id='t'+m.id,inl=lib.has(id);return pcard('#film/'+id,m.poster_path?IMG+'w185'+m.poster_path:null,m.title,(m.release_date||'').slice(0,4),false,inl,m.vote_average)}).join('')}</div>`:''}
+  ${sim.length?`<h2>Dans le même esprit</h2><div class="strip">${sim.slice(0,18).map(m=>{const id='t'+m.id,inl=lib.has(id);return pcard(filmHref(id,m.title),m.poster_path?IMG+'w185'+m.poster_path:null,m.title,(m.release_date||'').slice(0,4),false,inl,m.vote_average)}).join('')}</div>`:''}
   ${(t.keywords||[]).length?(()=>{const keywordIds=new Map((x.keywords||[]).filter(q=>q&&q.id!=null&&q.name).map(q=>[q.name,Number(q.id)]));return '<h2>Mots-clés</h2><div class="chips">'+t.keywords.map(k=>{const id=keywordIds.get(k);return Number.isSafeInteger(id)&&id>0?'<a class="chip" href="#discover?'+new URLSearchParams({keyword:String(id),name:k}).toString()+'" title="Découvrir les films associés à ce mot-clé">'+esc(k)+'</a>':'<span class="chip">'+esc(k)+'</span>'}).join('')+'</div>'})():''}
   ${((x.images||{}).backdrops||[]).length?`<h2>Images</h2><div class="gal">${x.images.backdrops.slice(0,12).map(i=>`<a href="${IMG}original${i.file_path}" target="_blank" rel="noopener"><img loading="lazy" src="${IMG}w300${i.file_path}" alt=""></a>`).join('')}</div>`:''}
 `;
@@ -624,9 +627,12 @@ async function showDetail(id){
   el.innerHTML='<div class="topbar"><button class="btn alt" id="back" type="button">Ma vidéothèque</button></div><p class="mute">Chargement…</p>';
   try{
     const f=await getOrFetchTmdbDetail(id);
-    if(location.hash!=='#film/'+id)return;
+    if(currentFilmRouteId()!==String(id))return;
+    const filmTitle=(f.tmdb&&f.tmdb.title)||(f.csv&&f.csv.title)||'Film';
+    const canonicalHash=filmHref(id,filmTitle);
+    if(location.hash!==canonicalHash)history.replaceState(null,'',location.pathname+location.search+canonicalHash);
     el.innerHTML=detailHTML(f);
-    document.title=((f.tmdb&&f.tmdb.title)||(f.csv&&f.csv.title)||'Film')+' · Ma vidéothèque';
+    document.title=filmTitle+' · Ma vidéothèque';
   }catch(e){if(location.hash!=='#film/'+id)return;el.innerHTML='<div class="topbar"><button class="btn alt" id="back" type="button">Ma vidéothèque</button></div><p class="mute">Impossible d’afficher ce film : '+esc(e.message)+'</p>'}
 }
 
@@ -783,7 +789,7 @@ function renderKodiMovies(){
   const rating=local&&tmdbRatings.has(local.id)?'<span class="badge tmdb">'+fmtR(tmdbRatings.get(local.id))+'</span>':'';
   const watched=local&&local.w?'<span class="poster-date">'+EYE+'<span>Vu le '+fmtD(local.w)+'</span></span>':'';
   const body='<div class="poster">'+poster+rating+personal+watched+'</div><div class="card-heading"><h2>'+esc(m.title||'Titre inconnu')+'</h2></div><div class="meta">'+(m.year?esc(m.year):'')+'</div>';
-  return tmdbId?'<a class="kodi-card" href="#film/t'+encodeURIComponent(tmdbId)+'">'+body+'</a>':'<article class="kodi-card">'+body+'<div class="meta">Identifiant TMDB absent</div></article>';
+  return tmdbId?'<a class="kodi-card" href="'+esc(filmHref('t'+tmdbId,local&&local.t||m.title))+'">'+body+'</a>':'<article class="kodi-card">'+body+'<div class="meta">Identifiant TMDB absent</div></article>';
  }).join('');
  const count=movies.length,empty=kodiMoviesSnapshot.length===0;
  $('#kodiPageCount').textContent=count+' film(s) affiché(s)'+(query?' sur '+kodiMoviesSnapshot.length:'');
@@ -802,7 +808,7 @@ function renderKodiPage(){
  renderKodiMovies();
 }
 function route(){
-  const m=location.hash.match(/^#film\/([\w-]+)$/),s=location.hash.match(/^#saga\/(\d+)$/),isSt=location.hash==='#stats',isDiscover=location.hash==='#discover'||location.hash.startsWith('#discover?'),isKodi=location.hash==='#kodi',discoverQuery=new URLSearchParams(location.hash.split('?')[1]||''),was=document.body.classList.contains('indetail');
+  const m=location.hash.match(/^#film\/([\w-]+?)(?:-[a-z0-9-]+)?$/i),s=location.hash.match(/^#saga\/(\d+)$/),isSt=location.hash==='#stats',isDiscover=location.hash==='#discover'||location.hash.startsWith('#discover?'),isKodi=location.hash==='#kodi',discoverQuery=new URLSearchParams(location.hash.split('?')[1]||''),was=document.body.classList.contains('indetail');
   if(m||s||isSt||isDiscover||isKodi){
     if(!was)gridScroll=window.scrollY;
     document.body.classList.add('indetail');window.scrollTo(0,0);
@@ -976,7 +982,7 @@ function discoverCard(movie){
  const id=Number(movie.id),title=movie.title||movie.original_title||'Film sans titre',year=(movie.release_date||'').slice(0,4),rating=Number(movie.vote_average),votes=Number(movie.vote_count)||0;
  const libraryFilm=ALL.find(f=>String(f.id)==='t'+id),inLibrary=!!libraryFilm,poster=movie.poster_path?'<img loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342'+esc(movie.poster_path)+'" alt="">':'<div class="noimg">'+esc(title.slice(0,2))+'</div>';
  const personalRating=libraryFilm&&libraryFilm.r!=null?'<span class="badge personal-rating poster-personal-rating '+rcls(Number(libraryFilm.r))+'" title="Ma note : '+fmtR(libraryFilm.r)+' / 10">'+fmtR(libraryFilm.r)+'<small>/10</small></span>':'';
- return '<a class="card" href="#film/t'+id+'"><div class="poster">'+poster+(Number.isFinite(rating)?'<span class="badge tmdb">'+rating.toFixed(1).replace('.',',')+'</span>':'')+personalRating+(kodiTmdbIds.has(String(id))?KODI_ICON:'')+'</div><div class="card-heading"><h2>'+esc(title)+'</h2></div><div class="meta">'+esc(year||'Année inconnue')+' · '+votes.toLocaleString('fr-FR')+' votes</div>'+(inLibrary?'<div class="discover-library">Dans ma vidéothèque</div>':'')+'</a>';
+ return '<a class="card" href="'+esc(filmHref('t'+id,title))+'"><div class="poster">'+poster+(Number.isFinite(rating)?'<span class="badge tmdb">'+rating.toFixed(1).replace('.',',')+'</span>':'')+personalRating+(kodiTmdbIds.has(String(id))?KODI_ICON:'')+'</div><div class="card-heading"><h2>'+esc(title)+'</h2></div><div class="meta">'+esc(year||'Année inconnue')+' · '+votes.toLocaleString('fr-FR')+' votes</div>'+(inLibrary?'<div class="discover-library">Dans ma vidéothèque</div>':'')+'</a>';
 }
 function renderDiscoverResults(){
  const visible=discoverHideWatched?discoverItems.filter(movie=>!discoverWatchedIds.has(String(movie.id))):discoverItems;
@@ -1013,7 +1019,7 @@ function showDiscover(keywordId,keywordName){
  }
 }
 function searchStatus(message,kind=''){const el=$('#tmdbSearchStatus');el.textContent=message;el.className='mute '+kind}
-function renderSearchResults(hits){$('#tmdbSearchResults').innerHTML=hits.map(x=>'<button class="tmdb-result" type="button" data-tmdb-movie="'+Number(x.id)+'">'+(x.poster_path?'<img alt="" loading="lazy" src="https://image.tmdb.org/t/p/w185'+esc(x.poster_path)+'">':'<div></div>')+'<span><b>'+esc(x.title||x.original_title||'Film sans titre')+'</b><p>'+esc((x.release_date||'').slice(0,4)||'Année inconnue')+' · '+esc((x.overview||'').slice(0,120))+'</p><small>Voir le détail</small></span></button>').join('')}
+function renderSearchResults(hits){$('#tmdbSearchResults').innerHTML=hits.map(x=>'<button class="tmdb-result" type="button" data-tmdb-movie="'+Number(x.id)+'" data-tmdb-title="'+esc(x.title||x.original_title||'Film')+'">'+(x.poster_path?'<img alt="" loading="lazy" src="https://image.tmdb.org/t/p/w185'+esc(x.poster_path)+'">':'<div></div>')+'<span><b>'+esc(x.title||x.original_title||'Film sans titre')+'</b><p>'+esc((x.release_date||'').slice(0,4)||'Année inconnue')+' · '+esc((x.overview||'').slice(0,120))+'</p><small>Voir le détail</small></span></button>').join('')}
 const SEARCH_CACHE_KEY='tmdbSearchCache',SEARCH_CACHE_TTL=7*24*60*60*1000,SEARCH_CACHE_LIMIT=50;
 function normalizeSearchKey(q){return String(q||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim()}
 async function readSearchCache(){try{return await window.VideothequeDB.getSetting(SEARCH_CACHE_KEY)||{}}catch(e){return {}}}
@@ -1022,7 +1028,7 @@ async function searchTmdb(){const q=$('#q').value.trim(),seq=++searchSequence;$(
 $('#q').addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(searchTmdb,350)});
 $('#q').addEventListener('search',()=>{clearTimeout(searchTimer);searchTmdb()});
 $('#q').addEventListener('keydown',e=>{if(e.key==='Enter'){clearTimeout(searchTimer);searchTmdb()}});
-$('#tmdbSearchResults').addEventListener('click',e=>{const button=e.target.closest('[data-tmdb-movie]');if(button){const id=Number(button.dataset.tmdbMovie);if(Number.isSafeInteger(id)&&id>0)location.hash='#film/t'+id}});
+$('#tmdbSearchResults').addEventListener('click',e=>{const button=e.target.closest('[data-tmdb-movie]');if(button){const id=Number(button.dataset.tmdbMovie);if(Number.isSafeInteger(id)&&id>0)location.hash=filmHref('t'+id,button.dataset.tmdbTitle)}});
 quickTokenState();
 function shape(d){const crew=(d.credits||{}).crew||[],uniq=a=>[...new Set(a)],by=(...jobs)=>uniq(crew.filter(x=>jobs.includes(x.job)).map(x=>x.name));const rd=(d.release_dates||{}).results||[];const cert=c=>{const x=rd.find(r=>r.iso_3166_1===c),y=x&&(x.release_dates||[]).find(z=>z.certification);return y?y.certification:null};const ext=d.external_ids||{};return {tmdbId:d.id,imdbId:d.imdb_id||ext.imdb_id||null,wikidataId:ext.wikidata_id||null,title:d.title,originalTitle:d.original_title,altTitles:[...new Set(((d.alternative_titles||{}).titles||[]).map(x=>x.title))],tagline:d.tagline||'',overview:d.overview||'',overviewLang:d.overviewLang||'fr',releaseDate:d.release_date||null,runtime:d.runtime||null,status:d.status||null,genres:(d.genres||[]).map(g=>g.name),genreIds:(d.genres||[]).map(g=>g.id),countries:(d.production_countries||[]).map(x=>x.name),originCountry:d.origin_country||[],languages:(d.spoken_languages||[]).map(x=>x.name||x.english_name),originalLanguage:d.original_language,directors:by('Director'),directorIds:uniq(crew.filter(x=>x.job==='Director').map(x=>x.id)),writers:by('Screenplay','Writer','Novel'),composers:by('Original Music Composer'),cinematographers:by('Director of Photography'),editors:by('Editor'),producers:by('Producer'),cast:((d.credits||{}).cast||[]).slice(0,15).map(x=>({id:x.id,name:x.name,character:x.character,profilePath:x.profile_path||null})),companies:(d.production_companies||[]).map(x=>x.name),collection:d.belongs_to_collection?{id:d.belongs_to_collection.id,name:d.belongs_to_collection.name}:null,keywords:((d.keywords||{}).keywords||[]).map(x=>x.name),certificationFR:cert('FR'),certificationUS:cert('US'),budget:d.budget||null,revenue:d.revenue||null,popularity:d.popularity,voteAverage:d.vote_average,voteCount:d.vote_count,adult:!!d.adult,posterPath:d.poster_path,backdropPath:d.backdrop_path,homepage:d.homepage||null,social:{facebook:ext.facebook_id||null,instagram:ext.instagram_id||null,twitter:ext.twitter_id||null}}}
 function buildExtra(d){const A=x=>Array.isArray(x)?x:[],pick=(o,ks)=>{const r={};ks.forEach(k=>{if(o[k]!==undefined)r[k]=o[k]});return r};const im=d.images||{},ik=['file_path','width','height','iso_639_1','vote_average','vote_count'],mk=['id','title','original_title','release_date','poster_path','vote_average','genre_ids','original_language'];return {credits:{cast:A((d.credits||{}).cast).map(x=>pick(x,['id','name','original_name','character','order','gender','known_for_department','profile_path'])),crew:A((d.credits||{}).crew).map(x=>pick(x,['id','name','original_name','job','department','gender','profile_path']))},alternativeTitles:A((d.alternative_titles||{}).titles),externalIds:d.external_ids||{},keywords:A((d.keywords||{}).keywords),releaseDates:A((d.release_dates||{}).results),translations:A((d.translations||{}).translations).map(t=>({iso_639_1:t.iso_639_1,iso_3166_1:t.iso_3166_1,name:t.name,english_name:t.english_name,title:(t.data||{}).title||'',overview:(t.data||{}).overview||'',tagline:(t.data||{}).tagline||''})).filter(t=>t.title||t.overview||t.tagline),videos:A((d.videos||{}).results).map(x=>pick(x,['key','site','type','name','iso_639_1','official','published_at','size'])),images:{posters:A(im.posters).slice(0,40).map(x=>pick(x,ik)),backdrops:A(im.backdrops).slice(0,40).map(x=>pick(x,ik)),logos:A(im.logos).slice(0,20).map(x=>pick(x,ik))},recommendations:A((d.recommendations||{}).results).slice(0,20).map(x=>pick(x,mk)),similar:A((d.similar||{}).results).slice(0,20).map(x=>pick(x,mk)),watchProviders:(d['watch/providers']||{}).results||{},reviews:A((d.reviews||{}).results).slice(0,5).map(x=>({author:x.author,rating:(x.author_details||{}).rating??null,created_at:x.created_at,url:x.url,content:(x.content||'').slice(0,3000)})),belongsToCollection:d.belongs_to_collection||null,productionCompanies:A(d.production_companies),productionCountries:A(d.production_countries),spokenLanguages:A(d.spoken_languages),genres:A(d.genres)}}
