@@ -181,7 +181,7 @@ details{margin:8px 0}summary{cursor:pointer;color:var(--mute)}
 .tabs button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:var(--accink)}
 .vb{display:flex;align-items:flex-end;gap:6px;height:230px;box-sizing:border-box;overflow-x:auto;padding-top:18px}
 .vcol{flex:1 0 34px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:.75rem}
-.vcol .vv{color:var(--mute);margin-bottom:2px}.vcol .vbar{display:block;flex:none;width:100%;max-width:46px;max-height:calc(100% - 38px);border-radius:4px 4px 0 0;min-height:2px;background:var(--acc);margin:0}
+.vcol .vv{color:var(--mute);margin-bottom:2px}.vcol .vbar{display:block;flex:none;width:100%;max-width:46px;border-radius:4px 4px 0 0;min-height:2px;background:var(--acc);margin:0}
 .vcol .vl{margin-top:4px;color:var(--mute);white-space:nowrap}
 .c-g{background:#1e7a3c!important}.c-o{background:#b45309!important}.c-r{background:#c62828!important}
 .hrow{display:grid;grid-template-columns:minmax(90px,200px) 1fr auto;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:0;padding:4px 0;cursor:pointer;color:inherit;font:inherit}
@@ -836,7 +836,7 @@ let ymetric='n';
 function vchart(items,metric){
   const val=i=>metric==='avg'?i.avg:metric==='h'?i.h:i.n,max=Math.max(...items.map(i=>val(i)||0),1);
   return `<div class="vb">${items.map(i=>{const v=val(i)||0,txt=metric==='avg'?fmtA(i.avg):metric==='h'?Math.round(i.h)+' h':i.n;
-    return `<div class="vcol" title="${esc(i.label)} : ${i.n} film(s), note moyenne ${fmtA(i.avg)}"><span class="vv">${txt}</span><div class="vbar ${i.cls||(metric==='avg'?rc(i.avg):'')}" style="height:${(metric==='avg'?v/10:v/max)*100}%"></div><span class="vl">${esc(i.label)}</span></div>`}).join('')}</div>`;
+    return `<div class="vcol" title="${esc(i.label)} : ${i.n} film(s), note moyenne ${fmtA(i.avg)}"><span class="vv">${txt}</span><div class="vbar ${i.cls||(metric==='avg'?rc(i.avg):'')}" style="height:${Math.max(2,(metric==='avg'?v/10:v/max)*150)}px"></div><span class="vl">${esc(i.label)}</span></div>`}).join('')}</div>`;
 }
 function hrows(items,opt){
   const max=Math.max(...items.map(i=>opt.avg?10:i.n),1);
