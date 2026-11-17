@@ -781,7 +781,8 @@ function renderKodiMovies(){
   const poster=local&&local.p?'<img loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342'+esc(local.p)+'" alt="">':'<div class="noimg">'+esc(String(m.title||'?').slice(0,2))+'</div>';
   const personal=local&&local.r!=null?'<span class="badge personal-rating poster-personal-rating '+rcls(Number(local.r))+'">'+fmtR(local.r)+'<small>/10</small></span>':'';
   const rating=local&&tmdbRatings.has(local.id)?'<span class="badge tmdb">'+fmtR(tmdbRatings.get(local.id))+'</span>':'';
-  const body='<div class="poster">'+poster+rating+personal+'</div><div class="card-heading"><h2>'+esc(m.title||'Titre inconnu')+'</h2></div><div class="meta">'+(m.year?esc(m.year)+' · ':'')+(m.playcount>0?'Vu dans Kodi':'Pas encore vu dans Kodi')+'</div>';
+  const watched=local&&local.w?'<span class="poster-date">'+EYE+'<span>Vu le '+fmtD(local.w)+'</span></span>':'';
+  const body='<div class="poster">'+poster+rating+personal+watched+'</div><div class="card-heading"><h2>'+esc(m.title||'Titre inconnu')+'</h2></div><div class="meta">'+(m.year?esc(m.year):'')+'</div>';
   return tmdbId?'<a class="kodi-card" href="#film/t'+encodeURIComponent(tmdbId)+'">'+body+'</a>':'<article class="kodi-card">'+body+'<div class="meta">Identifiant TMDB absent</div></article>';
  }).join('');
  const count=movies.length,empty=kodiMoviesSnapshot.length===0;
