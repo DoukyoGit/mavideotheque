@@ -584,7 +584,7 @@ function detailHTML(f){
     ${cast.length>20?`<details><summary>Distribution complète (${cast.length})</summary>${cast.map(a=>`<span>${a.id!=null?`<a href='https://www.themoviedb.org/person/${encodeURIComponent(a.id)}' target='_blank' rel='noopener noreferrer'>${esc(a.name)}</a>`:esc(a.name)}${a.character?` <span class='mute'>(${esc(a.character)})</span>`:""}</span>`).join("<br>")}</details>`:""}`:""}
   ${Object.keys(crewBy).length?`<details><summary>Équipe technique complète</summary>${Object.keys(crewBy).sort().map(d=>`<p><b>${esc(d)}</b><br>${[...crewBy[d]].map(([j,n])=>`<span class="mute">${esc(j)} :</span> ${crewNames([...new Set(n)])}`).join('<br>')}</p>`).join('')}</details>`:''}
   ${sim.length?`<h2>Dans le même esprit</h2><div class="strip">${sim.slice(0,18).map(m=>{const id='t'+m.id,inl=lib.has(id);return pcard('#film/'+id,m.poster_path?IMG+'w185'+m.poster_path:null,m.title,(m.release_date||'').slice(0,4),false,inl,m.vote_average)}).join('')}</div>`:''}
-  ${(t.keywords||[]).length?`<h2>Mots-clés</h2><div class="chips">${t.keywords.map(k=>{const kw=(x.keywords||[]).find(q=>q.name===k&&q.id);return kw?`<a class="chip" href="https://www.themoviedb.org/keyword/${encodeURIComponent(kw.id)}" target="_blank" rel="noopener noreferrer" title="Voir les films associés sur TMDB">${esc(k)}</a>`:`<span class="chip">${esc(k)}</span>`}).join('')}</div>`:''}
+  ${(t.keywords||[]).length?`<h2>Mots-clés</h2><div class="chips">${t.keywords.map(k=>{const kw=(x.keywords||[]).find(q=>q.name===k&&q.id);return kw?`<a class="chip" href="#discover?keyword=${encodeURIComponent(kw.id)}&name=${encodeURIComponent(k)}" title="Découvrir les films associés à ce mot-clé">${esc(k)}</a>`:`<span class="chip">${esc(k)}</span>`}).join('')}</div>`:''}
   ${((x.images||{}).backdrops||[]).length?`<h2>Images</h2><div class="gal">${x.images.backdrops.slice(0,12).map(i=>`<a href="${IMG}original${i.file_path}" target="_blank" rel="noopener"><img loading="lazy" src="${IMG}w300${i.file_path}" alt=""></a>`).join('')}</div>`:''}
 `;
 }
@@ -725,12 +725,12 @@ $('#detail').addEventListener('keydown',e=>{
 });
 
 function route(){
-  const m=location.hash.match(/^#film\/([\w-]+)$/),s=location.hash.match(/^#saga\/(\d+)$/),isSt=location.hash==='#stats',isDiscover=location.hash==='#discover',was=document.body.classList.contains('indetail');
+  const m=location.hash.match(/^#film\/([\w-]+)$/),s=location.hash.match(/^#saga\/(\d+)$/),isSt=location.hash==='#stats',isDiscover=location.hash==='#discover'||location.hash.startsWith('#discover?'),discoverQuery=new URLSearchParams(location.hash.split('?')[1]||''),was=document.body.classList.contains('indetail');
   if(m||s||isSt||isDiscover){
     if(!was)gridScroll=window.scrollY;
     document.body.classList.add('indetail');window.scrollTo(0,0);
     $('#detail').classList.toggle('hide',!(m||s));$('#stats').classList.toggle('hide',!isSt);$('#discover').classList.toggle('hide',!isDiscover);
-    if(m)showDetail(m[1]);else if(s)showSaga(s[1]);else if(isSt)showStats();else showDiscover();
+    if(m)showDetail(m[1]);else if(s)showSaga(s[1]);else if(isSt)showStats();else showDiscover(discoverQuery.get('keyword'),discoverQuery.get('name'));
   }else{
     document.body.classList.remove('indetail');$('#detail').classList.add('hide');$('#stats').classList.add('hide');$('#discover').classList.add('hide');document.title='Ma vidéothèque';
     if(was)window.scrollTo(0,gridScroll);
@@ -825,7 +825,7 @@ const DISCOVER_SORTS=[
 ];
 let discoverInitialized=false,discoverPage=1,discoverBusy=false,discoverSequence=0,discoverItems=[],discoverTotal=0,discoverMetaReady=false,discoverKeywordIds=[];
 function renderDiscoverShell(){
- $('#discover').innerHTML='<div class="topbar"><button class="btn alt" id="discoverBack" type="button">← Ma vidéothèque</button></div><h1>Découvrir</h1><p class="discover-intro">Compose librement ta recherche parmi les critères TMDB. Les films de ta vidéothèque sont signalés ; tu peux masquer ceux que tu as déjà vus. Seuls les films ayant au moins 500 votes sont proposés.</p><div class="discover-filters"><label class="discover-field">Genres <select id="discoverGenres" multiple aria-label="Genres"></select><small>Plusieurs genres : au moins un doit correspondre.</small></label><div class="discover-field wide"><span>Mots-clés TMDB</span><div class="discover-keyword"><input id="discoverKeywordQuery" type="search" placeholder="Rechercher un mot-clé"><button class="btn alt" id="discoverKeywordSearch" type="button">Rechercher</button></div><div id="discoverKeywordResults"></div><div id="discoverKeywords"></div></div><label class="discover-field wide">Trier les résultats <select id="discoverSort">'+DISCOVER_SORTS.map(x=>'<option value="'+x[0]+'">'+esc(x[1])+'</option>').join('')+'</select></label></div><div class="discover-actions"><button id="discoverSearch" class="btn" type="button">Rechercher les films</button><button id="discoverReset" class="btn alt" type="button">Réinitialiser</button><button id="discoverHideWatched" class="btn alt" type="button" aria-pressed="false">Masquer les films vus</button></div><div id="discoverStatus" role="status" aria-live="polite">Préparation…</div><div id="discoverGrid"></div><button id="discoverMore" class="btn alt hide" type="button">Afficher plus</button>';
+ $('#discover').innerHTML='<div class="topbar"><button class="btn alt" id="discoverBack" type="button">← Ma vidéothèque</button></div><h1>Découvrir</h1><p class="discover-intro">Compose librement ta recherche parmi les critères TMDB. Les films de ta vidéothèque sont signalés ; tu peux masquer ceux que tu as déjà vus. Seuls les films ayant au moins 500 votes sont proposés.</p><div class="discover-filters"><label class="discover-field">Genre <select id="discoverGenres" aria-label="Genre"><option value="">Tous les genres</option></select></label><div class="discover-field wide"><span>Mots-clés TMDB</span><div class="discover-keyword"><input id="discoverKeywordQuery" type="search" placeholder="Rechercher un mot-clé"><button class="btn alt" id="discoverKeywordSearch" type="button">Rechercher</button></div><div id="discoverKeywordResults"></div><div id="discoverKeywords"></div></div><label class="discover-field wide">Trier les résultats <select id="discoverSort">'+DISCOVER_SORTS.map(x=>'<option value="'+x[0]+'">'+esc(x[1])+'</option>').join('')+'</select></label></div><div class="discover-actions"><button id="discoverSearch" class="btn" type="button">Rechercher les films</button><button id="discoverReset" class="btn alt" type="button">Réinitialiser</button><button id="discoverHideWatched" class="btn alt" type="button" aria-pressed="false">Masquer les films vus</button></div><div id="discoverStatus" role="status" aria-live="polite">Préparation…</div><div id="discoverGrid"></div><button id="discoverMore" class="btn alt hide" type="button">Afficher plus</button>';
  refreshDiscoverWatchedIds();
  $('#discoverBack').addEventListener('click',()=>{location.hash=''});
  $('#discoverSearch').addEventListener('click',()=>loadDiscover(true));
@@ -843,7 +843,7 @@ function renderDiscoverShell(){
  $('#discoverMore').addEventListener('click',()=>loadDiscover(false));
  loadDiscoverMetadata();
 }
-let discoverHideWatched=false;
+let discoverHideWatched=false,discoverPendingKeyword=null;
 const discoverWatchedIds=new Set();
 function refreshDiscoverWatchedIds(){
  discoverWatchedIds.clear();
@@ -858,7 +858,8 @@ async function loadDiscoverMetadata(){
   if(!await quickTokenState())throw Error('Configure ton jeton TMDB dans Outils → Jeton TMDB pour utiliser Découvrir.');
   const genres=await quickTmdbApi('/genre/movie/list',{language:'fr-FR'});
   discoverOptions('#discoverGenres',genres.genres||[],x=>x.id,x=>x.name);
-  discoverMetaReady=true;status.textContent='Choisis tes critères puis lance la recherche.';
+  discoverMetaReady=true;
+  if(discoverPendingKeyword){discoverKeywordIds=[discoverPendingKeyword];discoverPendingKeyword=null;renderDiscoverKeywords();loadDiscover(true)}else status.textContent='Choisis tes critères puis lance la recherche.';
  }catch(error){status.className='bad';status.textContent=error.message||String(error)}
 }
 async function searchDiscoverKeywords(){
@@ -921,9 +922,13 @@ async function loadDiscover(reset){
  }catch(error){if(seq===discoverSequence){status.className='bad';status.textContent=error.message||String(error)}}
  finally{if(seq===discoverSequence){discoverBusy=false;more.disabled=false;$('#discoverSearch').disabled=false;$('#discoverReset').disabled=false}}
 }
-function showDiscover(){
+function showDiscover(keywordId,keywordName){
  document.title='Découvrir · Ma vidéothèque';
  if(!discoverInitialized){discoverInitialized=true;renderDiscoverShell()}
+ if(keywordId&&/^\\d+$/.test(keywordId)){
+  const keyword={id:Number(keywordId),name:keywordName||'Mot-clé TMDB'};
+  if(discoverMetaReady){discoverKeywordIds=[keyword];renderDiscoverKeywords();loadDiscover(true)}else discoverPendingKeyword=keyword;
+ }
 }
 function searchStatus(message,kind=''){const el=$('#tmdbSearchStatus');el.textContent=message;el.className='mute '+kind}
 function renderSearchResults(hits){$('#tmdbSearchResults').innerHTML=hits.map(x=>'<button class="tmdb-result" type="button" data-tmdb-movie="'+Number(x.id)+'">'+(x.poster_path?'<img alt="" loading="lazy" src="https://image.tmdb.org/t/p/w185'+esc(x.poster_path)+'">':'<div></div>')+'<span><b>'+esc(x.title||x.original_title||'Film sans titre')+'</b><p>'+esc((x.release_date||'').slice(0,4)||'Année inconnue')+' · '+esc((x.overview||'').slice(0,120))+'</p><small>Voir le détail</small></span></button>').join('')}
