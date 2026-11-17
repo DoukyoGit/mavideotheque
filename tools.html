@@ -179,6 +179,8 @@ async function kodiCompare(){
   kodiSetStatus('kodiCompareStatus','Lecture de ta vidéothèque locale…');
   const [appIndex,kodiMovies]=await Promise.all([window.VideothequeDB.getIndex(),kodiFetchMovies()]);
   if(!appIndex||!Array.isArray(appIndex.films))throw new Error('Aucune base locale active. Importe une sauvegarde complète.');
+  const kodiSnapshot={syncedAt:new Date().toISOString(),movies:kodiMovies.map(m=>({movieId:Number(m.movieid)||null,tmdbId:kodiTmdbId(m),title:String(m.title||m.originaltitle||'Titre inconnu'),year:Number(m.year)||null,playcount:Number(m.playcount)||0,lastplayed:m.lastplayed||null})).sort((a,b)=>a.title.localeCompare(b.title,'fr',{sensitivity:'base'}))};
+  await window.VideothequeDB.setSetting('kodiMovies',kodiSnapshot);
   const appFilms=appIndex.films,byTmdb=new Map(),ignoredValue=await window.VideothequeDB.getSetting('kodiIgnoredMovies'),ignored=new Set(Array.isArray(ignoredValue)?ignoredValue:[]);
   for(const f of appFilms){const tid=appTmdbId(f);if(tid){if(!byTmdb.has(tid))byTmdb.set(tid,[]);byTmdb.get(tid).push(f)}}
   kodiSetStatus('kodiCompareStatus','Comparaison TMDB stricte de '+appFilms.length+' entrées avec '+kodiMovies.length+' films Kodi…');
