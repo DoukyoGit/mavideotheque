@@ -831,7 +831,7 @@ async function loadDiscover(reset){
  const seq=discoverSequence;
  discoverBusy=true;
  const status=$('#discoverStatus'),more=$('#discoverMore');
- status.className='';status.textContent=reset?'Recherche TMDB…':'Chargement de la suite…';more.disabled=true;
+ status.className='';status.textContent=reset?'Recherche TMDB…':'Chargement de la suite…';more.disabled=true;$('#discoverPreset').disabled=true;$('#discoverVotes').disabled=true;
  try{
   if(!await quickTokenState())throw Error('Configure ton jeton TMDB dans Outils → Jeton TMDB pour utiliser Découvrir.');
   const preset=DISCOVER_PRESETS[$('#discoverPreset').value]||DISCOVER_PRESETS.hk;
@@ -845,7 +845,7 @@ async function loadDiscover(reset){
   discoverPage++;
   more.classList.toggle('hide',discoverPage>Math.min(Number(data.total_pages)||1,500)||!results.length);
  }catch(error){if(seq===discoverSequence){status.className='bad';status.textContent=error.message||String(error)}}
- finally{if(seq===discoverSequence){discoverBusy=false;more.disabled=false}}
+ finally{if(seq===discoverSequence){discoverBusy=false;more.disabled=false;$('#discoverPreset').disabled=false;$('#discoverVotes').disabled=false}}
 }
 function showDiscover(){
  document.title='Découvrir · Ma vidéothèque';
