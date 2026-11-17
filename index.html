@@ -322,15 +322,27 @@ header .bar{width:100%;margin:0}
 #discover{max-width:1400px;margin:0 auto;padding:0 14px 50px}
 #discover h1{font:600 clamp(1.6rem,4vw,2.2rem)/1.1 Georgia,"Times New Roman",serif;margin:8px 0}
 .discover-intro{color:var(--mute);margin:4px 0 16px}
-.discover-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin:14px 0 18px}
-.discover-controls label{display:flex;flex-direction:column;gap:4px;color:var(--mute);font-size:.8rem}
-.discover-controls select{min-width:180px;min-height:42px}
+.discover-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:16px 0}
+.discover-field{display:flex;flex-direction:column;gap:5px;min-width:0;color:var(--mute);font-size:.82rem}
+.discover-field select,.discover-field input{width:100%;min-width:0;min-height:42px}
+.discover-field select[multiple]{min-height:116px;padding:6px}
+.discover-field small{font-size:.74rem;color:var(--mute)}
+.discover-range{display:flex;gap:7px;align-items:center}
+.discover-range input{width:100%;min-width:0}
+.discover-keyword{display:flex;gap:6px}
+.discover-keyword input{flex:1;min-width:0}
+#discoverKeywordResults{display:grid;gap:4px;margin-top:5px}
+.discover-keyword-result{padding:6px 9px;text-align:left;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--ink);cursor:pointer}
+#discoverKeywords{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.discover-keyword-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:3px 8px;font-size:.78rem;color:var(--ink)}
+.discover-keyword-chip button{border:0;background:transparent;color:var(--mute);padding:0;cursor:pointer;font-size:1rem}
+.discover-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0}
 #discoverGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:18px 14px}
 #discoverStatus{padding:12px 0;color:var(--mute)}
 #discoverStatus.bad{color:#c62828}
 #discoverMore{display:block;margin:24px auto 0}
 .discover-library{font-size:.76rem;color:var(--acc);font-weight:650}
-@media(max-width:520px){#discover{padding:0 12px 50px}#discoverGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 11px}.discover-controls{display:grid;grid-template-columns:1fr 1fr}.discover-controls label:first-child{grid-column:1/-1}.discover-controls select{width:100%;min-width:0}}
+@media(max-width:520px){#discover{padding:0 12px 50px}#discoverGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 11px}.discover-filters{grid-template-columns:1fr 1fr;gap:10px}.discover-field.wide{grid-column:1/-1}.discover-field select[multiple]{min-height:130px}.discover-actions .btn{flex:1}}
 
 </style>
 </head>
@@ -804,36 +816,23 @@ let quickTmdb='',searchTimer=null,searchSequence=0,searchBusy=false;
 async function quickTokenState(){try{quickTmdb=await window.VideothequeDB.getSetting('tmdbToken')||''}catch(e){quickTmdb=''}$('#tmdbMissingAlert').hidden=!!quickTmdb;return !!quickTmdb}
 async function quickTmdbApi(path,params={}){if(!quickTmdb||!/^[A-Za-z0-9._-]+$/.test(quickTmdb.trim()))throw Error('Jeton TMDB invalide : vérifie Outils → Jeton TMDB.');const u=new URL('https://api.themoviedb.org/3'+path);Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));const r=await fetch(u.href,{headers:{Authorization:'Bearer '+quickTmdb.trim()}});if(!r.ok)throw Error(r.status===401?'Jeton TMDB invalide ou expiré.':'Erreur TMDB '+r.status+'.');return r.json()}
 
-const DISCOVER_PRESETS={
- hk:{label:'Meilleurs films hongkongais',params:{with_origin_country:'HK'}},
- japan:{label:'Meilleurs films japonais',params:{with_origin_country:'JP'}},
- korea:{label:'Meilleurs films sud-coréens',params:{with_origin_country:'KR'}},
- china:{label:'Meilleurs films chinois',params:{with_origin_country:'CN'}},
- india:{label:'Meilleurs films indiens',params:{with_origin_country:'IN'}},
- france:{label:'Meilleurs films français',params:{with_origin_country:'FR'}},
- action:{label:'Meilleurs films d’action',params:{with_genres:'28'}},
- combat:{label:'Meilleurs films de combats et arts martiaux',params:{with_genres:'28',with_keywords:'779'}},
- war:{label:'Meilleurs films de guerre',params:{with_genres:'10752'}},
- crime:{label:'Meilleurs polars et films criminels',params:{with_genres:'80'}},
- thriller:{label:'Meilleurs thrillers',params:{with_genres:'53'}},
- adventure:{label:'Meilleurs films d’aventure',params:{with_genres:'12'}},
- western:{label:'Meilleurs westerns',params:{with_genres:'37'}},
- scifi:{label:'Meilleurs films de science-fiction',params:{with_genres:'878'}},
- fantasy:{label:'Meilleurs films fantastiques',params:{with_genres:'14'}},
- horror:{label:'Meilleurs films d’horreur',params:{with_genres:'27'}},
- animation:{label:'Meilleurs films d’animation',params:{with_genres:'16'}},
- comedy:{label:'Meilleures comédies',params:{with_genres:'35'}},
- drama:{label:'Meilleurs drames',params:{with_genres:'18'}},
- romance:{label:'Meilleurs films romantiques',params:{with_genres:'10749'}}
-};
-let discoverInitialized=false,discoverPage=1,discoverBusy=false,discoverSequence=0,discoverItems=[],discoverTotal=0;
+const DISCOVER_SORTS=[
+ ['vote_average.desc','Note TMDB décroissante'],['vote_average.asc','Note TMDB croissante'],
+ ['popularity.desc','Popularité décroissante'],['popularity.asc','Popularité croissante'],
+ ['vote_count.desc','Nombre de votes décroissant'],['vote_count.asc','Nombre de votes croissant'],
+ ['primary_release_date.desc','Date de sortie, plus récente'],['primary_release_date.asc','Date de sortie, plus ancienne'],
+ ['revenue.desc','Revenus décroissants'],['revenue.asc','Revenus croissants'],['original_title.asc','Titre alphabétique']
+];
+let discoverInitialized=false,discoverPage=1,discoverBusy=false,discoverSequence=0,discoverItems=[],discoverTotal=0,discoverMetaReady=false,discoverKeywordIds=[];
 function renderDiscoverShell(){
- $('#discover').innerHTML='<div class="topbar"><button class="btn alt" id="discoverBack" type="button">← Ma vidéothèque</button></div><h1>Découvrir</h1><p class="discover-intro">Explore les classements TMDB par genre et par pays. Les films de ta vidéothèque sont signalés ; tu peux masquer ceux que tu as déjà vus.</p><div class="discover-controls"><label>Sélection<select id="discoverPreset">'+Object.entries(DISCOVER_PRESETS).map(([k,v])=>'<option value="'+k+'">'+esc(v.label)+'</option>').join('')+'</select></label><label>Votes minimum<select id="discoverVotes"><option value="100">100 votes</option><option value="500" selected>500 votes</option><option value="1000">1 000 votes</option><option value="5000">5 000 votes</option></select></label><button id="discoverHideWatched" class="btn alt" type="button" aria-pressed="false">Masquer les films vus</button></div><div id="discoverStatus" role="status" aria-live="polite">Préparation…</div><div id="discoverGrid"></div><button id="discoverMore" class="btn alt hide" type="button">Afficher plus</button>';
- $('#discoverPreset').value='hk';
+ $('#discover').innerHTML='<div class="topbar"><button class="btn alt" id="discoverBack" type="button">← Ma vidéothèque</button></div><h1>Découvrir</h1><p class="discover-intro">Compose librement ta recherche parmi les critères TMDB. Les films de ta vidéothèque sont signalés ; tu peux masquer ceux que tu as déjà vus. Seuls les films ayant au moins 500 votes sont proposés.</p><div class="discover-filters"><label class="discover-field">Pays de production <select id="discoverCountries" multiple aria-label="Pays de production"></select><small>Plusieurs pays : au moins un doit correspondre.</small></label><label class="discover-field">Genres <select id="discoverGenres" multiple aria-label="Genres"></select><small>Plusieurs genres : au moins un doit correspondre.</small></label><label class="discover-field">Langue originale <select id="discoverLanguages" multiple aria-label="Langues originales"></select></label><div class="discover-field wide"><span>Mots-clés TMDB</span><div class="discover-keyword"><input id="discoverKeywordQuery" type="search" placeholder="Rechercher un mot-clé"><button class="btn alt" id="discoverKeywordSearch" type="button">Rechercher</button></div><div id="discoverKeywordResults"></div><div id="discoverKeywords"></div></div><label class="discover-field">Popularité minimale <input id="discoverPopularityMin" type="number" min="0" step="any" placeholder="Sans minimum"></label><label class="discover-field">Popularité maximale <input id="discoverPopularityMax" type="number" min="0" step="any" placeholder="Sans maximum"></label><label class="discover-field">Durée minimale (minutes) <input id="discoverRuntimeMin" type="number" min="0" step="1" placeholder="Sans minimum"></label><label class="discover-field">Durée maximale (minutes) <input id="discoverRuntimeMax" type="number" min="0" step="1" placeholder="Sans maximum"></label><label class="discover-field wide">Trier les résultats <select id="discoverSort">'+DISCOVER_SORTS.map(x=>'<option value="'+x[0]+'">'+esc(x[1])+'</option>').join('')+'</select></label></div><div class="discover-actions"><button id="discoverSearch" class="btn" type="button">Rechercher les films</button><button id="discoverReset" class="btn alt" type="button">Réinitialiser</button><button id="discoverHideWatched" class="btn alt" type="button" aria-pressed="false">Masquer les films vus</button></div><div id="discoverStatus" role="status" aria-live="polite">Préparation…</div><div id="discoverGrid"></div><button id="discoverMore" class="btn alt hide" type="button">Afficher plus</button>';
  refreshDiscoverWatchedIds();
  $('#discoverBack').addEventListener('click',()=>{location.hash=''});
- $('#discoverPreset').addEventListener('change',()=>loadDiscover(true));
- $('#discoverVotes').addEventListener('change',()=>loadDiscover(true));
+ $('#discoverSearch').addEventListener('click',()=>loadDiscover(true));
+ $('#discoverReset').addEventListener('click',resetDiscoverFilters);
+ $('#discoverSort').addEventListener('change',()=>loadDiscover(true));
+ $('#discoverKeywordSearch').addEventListener('click',searchDiscoverKeywords);
+ $('#discoverKeywordQuery').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchDiscoverKeywords()}});
  $('#discoverHideWatched').addEventListener('click',()=>{
   discoverHideWatched=!discoverHideWatched;
   const button=$('#discoverHideWatched');
@@ -842,15 +841,65 @@ function renderDiscoverShell(){
   renderDiscoverResults();
  });
  $('#discoverMore').addEventListener('click',()=>loadDiscover(false));
+ loadDiscoverMetadata();
 }
 let discoverHideWatched=false;
 const discoverWatchedIds=new Set();
 function refreshDiscoverWatchedIds(){
  discoverWatchedIds.clear();
- ALL.filter(f=>f.w).forEach(f=>{
-  const id=String(f.id||'').replace(/^t/,'');
-  if(id)discoverWatchedIds.add(id);
- });
+ ALL.filter(f=>f.w).forEach(f=>{const id=String(f.id||'').replace(/^t/,'');if(id)discoverWatchedIds.add(id)});
+}
+function discoverOptions(selectId,items,valueFn,labelFn){
+ $(selectId).innerHTML=items.map(item=>'<option value="'+esc(String(valueFn(item)))+'">'+esc(String(labelFn(item)))+'</option>').join('');
+}
+async function loadDiscoverMetadata(){
+ const status=$('#discoverStatus');
+ try{
+  if(!await quickTokenState())throw Error('Configure ton jeton TMDB dans Outils → Jeton TMDB pour utiliser Découvrir.');
+  const [genres,countries,languages]=await Promise.all([
+   quickTmdbApi('/genre/movie/list',{language:'fr-FR'}),
+   quickTmdbApi('/configuration/countries',{language:'fr-FR'}),
+   quickTmdbApi('/configuration/languages')
+  ]);
+  discoverOptions('#discoverGenres',genres.genres||[],x=>x.id,x=>x.name);
+  discoverOptions('#discoverCountries',(countries||[]).sort((a,b)=>(a.native_name||a.english_name||'').localeCompare(b.native_name||b.english_name||'','fr')),x=>x.iso_3166_1,x=>x.native_name||x.english_name||x.iso_3166_1);
+  discoverOptions('#discoverLanguages',(languages||[]).filter(x=>x.iso_639_1).sort((a,b)=>(a.english_name||'').localeCompare(b.english_name||'')),x=>x.iso_639_1,x=>(x.english_name||x.name||x.iso_639_1)+' ('+x.iso_639_1+')');
+  discoverMetaReady=true;status.textContent='Choisis tes critères puis lance la recherche.';
+ }catch(error){status.className='bad';status.textContent=error.message||String(error)}
+}
+async function searchDiscoverKeywords(){
+ const query=$('#discoverKeywordQuery').value.trim(),target=$('#discoverKeywordResults');target.innerHTML='';
+ if(!query)return;
+ try{
+  const data=await quickTmdbApi('/search/keyword',{query,page:'1'});
+  const results=(data.results||[]).slice(0,8).filter(x=>!discoverKeywordIds.some(k=>k.id===x.id));
+  target.innerHTML=results.length?results.map(x=>'<button class="discover-keyword-result" type="button" data-keyword-id="'+Number(x.id)+'" data-keyword-name="'+esc(x.name)+'">'+esc(x.name)+'</button>').join(''):'<small class="mute">Aucun mot-clé trouvé.</small>';
+ }catch(error){target.textContent=error.message||String(error)}
+}
+function renderDiscoverKeywords(){
+ $('#discoverKeywords').innerHTML=discoverKeywordIds.map(x=>'<span class="discover-keyword-chip">'+esc(x.name)+' <button type="button" aria-label="Retirer '+esc(x.name)+'" data-remove-keyword="'+x.id+'">×</button></span>').join('');
+}
+$('#discover').addEventListener('click',e=>{
+ const add=e.target.closest('[data-keyword-id]');
+ if(add){const id=Number(add.dataset.keywordId);if(Number.isSafeInteger(id)&&id>0&&!discoverKeywordIds.some(x=>x.id===id))discoverKeywordIds.push({id,name:add.dataset.keywordName});$('#discoverKeywordResults').innerHTML='';$('#discoverKeywordQuery').value='';renderDiscoverKeywords();return}
+ const remove=e.target.closest('[data-remove-keyword]');
+ if(remove){discoverKeywordIds=discoverKeywordIds.filter(x=>x.id!==Number(remove.dataset.removeKeyword));renderDiscoverKeywords()}
+});
+function resetDiscoverFilters(){
+ ['#discoverCountries','#discoverGenres','#discoverLanguages'].forEach(id=>Array.from($(id).options).forEach(o=>o.selected=false));
+ ['#discoverPopularityMin','#discoverPopularityMax','#discoverRuntimeMin','#discoverRuntimeMax'].forEach(id=>$(id).value='');
+ $('#discoverSort').value='vote_average.desc';$('#discoverKeywordQuery').value='';$('#discoverKeywordResults').innerHTML='';discoverKeywordIds=[];renderDiscoverKeywords();loadDiscover(true);
+}
+function discoverSelected(id){return Array.from($(id).selectedOptions).map(o=>o.value).filter(Boolean)}
+function discoverParams(){
+ const params={language:'fr-FR',include_adult:'false',sort_by:$('#discoverSort').value,'vote_count.gte':'500',page:String(discoverPage)};
+ const countries=discoverSelected('#discoverCountries'),genres=discoverSelected('#discoverGenres'),languages=discoverSelected('#discoverLanguages');
+ if(countries.length)params.with_origin_country=countries.join(',');
+ if(genres.length)params.with_genres=genres.join(',');
+ if(languages.length)params.with_original_language=languages.join(',');
+ if(discoverKeywordIds.length)params.with_keywords=discoverKeywordIds.map(x=>x.id).join(',');
+ [['#discoverPopularityMin','popularity.gte'],['#discoverPopularityMax','popularity.lte'],['#discoverRuntimeMin','with_runtime.gte'],['#discoverRuntimeMax','with_runtime.lte']].forEach(([id,key])=>{const value=$(id).value.trim();if(value!==''&&Number.isFinite(Number(value))&&Number(value)>=0)params[key]=value});
+ return params;
 }
 function discoverCard(movie){
  const id=Number(movie.id),title=movie.title||movie.original_title||'Film sans titre',year=(movie.release_date||'').slice(0,4),rating=Number(movie.vote_average),votes=Number(movie.vote_count)||0;
@@ -860,35 +909,31 @@ function discoverCard(movie){
 function renderDiscoverResults(){
  const visible=discoverHideWatched?discoverItems.filter(movie=>!discoverWatchedIds.has(String(movie.id))):discoverItems;
  $('#discoverGrid').innerHTML=visible.map(discoverCard).join('');
- const preset=DISCOVER_PRESETS[$('#discoverPreset').value]||DISCOVER_PRESETS.hk;
- const hidden=discoverItems.length-visible.length;
- const total=discoverTotal||discoverItems.length;
- $('#discoverStatus').textContent=visible.length+' film(s) affiché(s) sur '+total.toLocaleString('fr-FR')+(hidden?' · '+hidden+' film(s) déjà vu(s) masqué(s)':'')+' · '+preset.label.toLowerCase()+' · au moins '+Number($('#discoverVotes').value).toLocaleString('fr-FR')+' votes';
+ const hidden=discoverItems.length-visible.length,total=discoverTotal||discoverItems.length;
+ $('#discoverStatus').textContent=visible.length+' film(s) affiché(s) sur '+total.toLocaleString('fr-FR')+(hidden?' · '+hidden+' film(s) déjà vu(s) masqué(s)':'')+' · au moins 500 votes';
 }
 async function loadDiscover(reset){
  if(discoverBusy)return;
  if(reset){discoverPage=1;discoverItems=[];discoverTotal=0;discoverSequence++;$('#discoverGrid').innerHTML='';$('#discoverMore').classList.add('hide')}
- const seq=discoverSequence;
- discoverBusy=true;
+ const seq=discoverSequence;discoverBusy=true;
  const status=$('#discoverStatus'),more=$('#discoverMore');
- status.className='';status.textContent=reset?'Recherche TMDB…':'Chargement de la suite…';more.disabled=true;$('#discoverPreset').disabled=true;$('#discoverVotes').disabled=true;
+ status.className='';status.textContent=reset?'Recherche TMDB…':'Chargement de la suite…';more.disabled=true;
+ $('#discoverSearch').disabled=true;$('#discoverReset').disabled=true;$('#discoverMore').disabled=true;
  try{
   if(!await quickTokenState())throw Error('Configure ton jeton TMDB dans Outils → Jeton TMDB pour utiliser Découvrir.');
-  const preset=DISCOVER_PRESETS[$('#discoverPreset').value]||DISCOVER_PRESETS.hk;
-  const data=await quickTmdbApi('/discover/movie',{language:'fr-FR',include_adult:'false',sort_by:'vote_average.desc','vote_count.gte':$('#discoverVotes').value,page:String(discoverPage),...preset.params});
+  if(!discoverMetaReady)throw Error('Les filtres TMDB ne sont pas encore chargés. Réessaie dans un instant.');
+  const data=await quickTmdbApi('/discover/movie',discoverParams());
   if(seq!==discoverSequence)return;
   const results=Array.isArray(data.results)?data.results:[];
-  discoverItems.push(...results);
-  discoverTotal=Number(data.total_results)||discoverItems.length;
-  renderDiscoverResults();
-  discoverPage++;
+  discoverItems.push(...results);discoverTotal=Number(data.total_results)||discoverItems.length;
+  renderDiscoverResults();discoverPage++;
   more.classList.toggle('hide',discoverPage>Math.min(Number(data.total_pages)||1,500)||!results.length);
  }catch(error){if(seq===discoverSequence){status.className='bad';status.textContent=error.message||String(error)}}
- finally{if(seq===discoverSequence){discoverBusy=false;more.disabled=false;$('#discoverPreset').disabled=false;$('#discoverVotes').disabled=false}}
+ finally{if(seq===discoverSequence){discoverBusy=false;more.disabled=false;$('#discoverSearch').disabled=false;$('#discoverReset').disabled=false}}
 }
 function showDiscover(){
  document.title='Découvrir · Ma vidéothèque';
- if(!discoverInitialized){discoverInitialized=true;renderDiscoverShell();loadDiscover(true)}
+ if(!discoverInitialized){discoverInitialized=true;renderDiscoverShell()}
 }
 function searchStatus(message,kind=''){const el=$('#tmdbSearchStatus');el.textContent=message;el.className='mute '+kind}
 function renderSearchResults(hits){$('#tmdbSearchResults').innerHTML=hits.map(x=>'<button class="tmdb-result" type="button" data-tmdb-movie="'+Number(x.id)+'">'+(x.poster_path?'<img alt="" loading="lazy" src="https://image.tmdb.org/t/p/w185'+esc(x.poster_path)+'">':'<div></div>')+'<span><b>'+esc(x.title||x.original_title||'Film sans titre')+'</b><p>'+esc((x.release_date||'').slice(0,4)||'Année inconnue')+' · '+esc((x.overview||'').slice(0,120))+'</p><small>Voir le détail</small></span></button>').join('')}
