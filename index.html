@@ -791,7 +791,7 @@ function renderKodiSagaOptions(){
 }
 async function loadKodiMovieMeta(movie){
  const id=String(movie.tmdbId||'');
- if(!/^\\d+$/.test(id)||kodiSagaByMovie.has(id)||kodiMetaPending.has(id))return kodiMetaPending.get(id);
+ if(!/^\d+$/.test(id)||kodiSagaByMovie.has(id)||kodiMetaPending.has(id))return kodiMetaPending.get(id);
  const task=(async()=>{
   try{
    let tmdb=null;
@@ -821,7 +821,7 @@ async function loadKodiMovieMeta(movie){
 async function loadAllKodiSagaMetadata(){
  if(kodiSagaLoadStarted)return;
  kodiSagaLoadStarted=true;
- const queue=kodiMoviesSnapshot.filter(m=>m.tmdbId&&/^\\d+$/.test(String(m.tmdbId)));
+ const queue=kodiMoviesSnapshot.filter(m=>m.tmdbId&&/^\d+$/.test(String(m.tmdbId)));
  let next=0;
  await Promise.all(Array.from({length:Math.min(4,queue.length)},async()=>{
   while(next<queue.length){const movie=queue[next++];await loadKodiMovieMeta(movie)}
