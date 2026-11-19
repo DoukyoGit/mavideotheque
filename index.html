@@ -780,9 +780,17 @@ function renderKodiSagaOptions(){
  const select=$('#kodiPageSaga');
  if(!select)return;
  const selected=kodiPageSaga;
- const sagas=new Map();
- kodiSagaByMovie.forEach(meta=>{if(meta?.id&&meta?.name)sagas.set(String(meta.id),meta.name)});
- select.innerHTML='<option value="">Toutes les sagas</option>'+[...sagas].sort((a,b)=>a[1].localeCompare(b[1],'fr',{sensitivity:'base'})).map(([id,name])=>'<option value="'+esc(id)+'">'+esc(name)+'</option>').join('');
+ const sagas=new Map(),counts=new Map();
+ kodiMoviesSnapshot.forEach(movie=>{
+  const meta=kodiSagaByMovie.get(String(movie.tmdbId||''));
+  if(!meta?.id||!meta?.name)return;
+  const id=String(meta.id);
+  counts.set(id,(counts.get(id)||0)+1);
+  sagas.set(id,meta.name);
+ });
+ // Ne proposer que les collections représentées par au moins deux films Kodi.
+ const eligible=[...sagas].filter(([id])=>(counts.get(id)||0)>=2);
+ select.innerHTML='<option value="">Toutes les sagas</option>'+eligible.sort((a,b)=>a[1].localeCompare(b[1],'fr',{sensitivity:'base'})).map(([id,name])=>'<option value="'+esc(id)+'">'+esc(name)+'</option>').join('');
  select.value=selected;
 }
 let kodiSagaLoadErrors=0;
