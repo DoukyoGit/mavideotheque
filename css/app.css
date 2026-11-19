@@ -350,3 +350,6 @@ header .bar{width:100%;margin:0}
 #detail .same-spirit-card h2{font:600 .95rem/1.25 Georgia,serif;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 #detail .same-spirit-card .meta,#detail .same-spirit-card .discover-library{font-size:.8rem;color:var(--mute)}
 @media(max-width:520px){#detail .same-spirit-card{flex-basis:min(42vw,150px)}}
+
+/* Cohérence typographique de toutes les notes */
+.score-badge,.score-pill,.personal-rating,.poster .badge:not(.tmdb):not(.kodi-badge),.saga-ratings .badge:not(.tmdb){font-family:Georgia,"Times New Roman",serif}
