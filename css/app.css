@@ -194,7 +194,6 @@ details{margin:8px 0}summary{cursor:pointer;color:var(--mute)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--mute:#a8a398}}
 :root[data-theme="dark"]{--mute:#a8a398}
 .icon-btn{border-color:transparent;background:transparent}
-.head-actions .icon-btn svg{width:26px!important;height:26px!important;min-width:26px;min-height:26px}
 #q{min-height:40px;padding:8px 15px}
 .poster .badge,.card .poster-personal-rating{background:rgba(12,14,18,.62)!important;color:#fff;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.14);border-left-width:3px;font-weight:600;font-size:.78rem;padding:3px 8px;box-shadow:none}
 .poster .badge.kodi-badge{padding:0;border-left-width:1px;display:flex;align-items:center;justify-content:center;box-sizing:border-box}
