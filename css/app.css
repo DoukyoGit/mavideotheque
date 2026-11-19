@@ -9,7 +9,6 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 14px}
 .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;max-width:1400px;margin:0 auto}
 .bar+.bar{margin-top:8px}
-.add-btn{min-width:38px;text-align:center;text-decoration:none;font-size:1.25rem;line-height:1;padding:7px 10px}
 h1{font:600 1.5rem/1.1 Georgia,"Times New Roman",serif;margin:0;letter-spacing:-.01em}
 .mute{color:var(--mute);font-size:.88rem}.hide{display:none!important}
 input,select,button{font:inherit;color:var(--ink)}
@@ -138,9 +137,6 @@ details{margin:8px 0}summary{cursor:pointer;color:var(--mute)}
 
 #detail a{color:var(--acc)}#detail a.pcard{color:inherit}
 
-.saga-poster{width:150px;max-width:34vw;aspect-ratio:2/3;object-fit:cover;border-radius:8px;background:var(--panel);box-shadow:var(--shadow)}
-
-.saga-stats{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
 .saga-grid{display:flex;flex-direction:column;gap:0}
 .saga-row{display:grid;grid-template-columns:116px minmax(0,1fr);gap:16px;align-items:start;padding:14px 0;border-bottom:1px solid var(--line);color:inherit;text-decoration:none}
 .saga-row:first-child{padding-top:4px}
@@ -335,11 +331,10 @@ header .bar{width:100%;margin:0}
 .kodi-page-count{margin:8px 0 12px}
 #kodiGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:18px 14px}
 @media(max-width:520px){.kodi-page-controls{grid-template-columns:minmax(0,1fr) 46px}.kodi-page-controls input{grid-column:1/-1}.kodi-page-controls select{grid-column:1}.kodi-page-controls .sort-direction{grid-column:2;grid-row:2}#kodiGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 11px}}
-.kodi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:18px 14px;margin-top:18px}
 .kodi-card{min-width:0;color:inherit;text-decoration:none;display:flex;flex-direction:column;gap:3px}
 .kodi-card .poster{position:relative;aspect-ratio:2/3;border-radius:8px;overflow:hidden;background:var(--panel);border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.12)}
 .kodi-card .poster img{width:100%;height:100%;object-fit:cover;display:block}
 .kodi-card h2{font:600 .95rem/1.25 Georgia,serif;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .kodi-card .meta{font-size:.8rem;line-height:1.25;color:var(--mute)}.kodi-card .kodi-filename{font-size:.76rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.82}
 .kodi-card:hover h2{text-decoration:underline;text-underline-offset:3px}
-@media(max-width:520px){.kodi-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 11px}.kodi-card h2{font-size:.91rem}.kodi-card .meta{font-size:.75rem}}
+@media(max-width:520px){.kodi-card h2{font-size:.91rem}.kodi-card .meta{font-size:.75rem}}
