@@ -40,6 +40,6 @@ L’application est composée de fichiers HTML, CSS et JavaScript statiques héb
 ## Organisation des fichiers
 
 - `index.html` et `tools.html` contiennent la structure des pages ; leur JavaScript est séparé dans `js/app.js` et `js/tools.js`.
-- `js/common.js` regroupe les utilitaires partagés (sélecteur DOM, échappement HTML et validation du jeton TMDB).
+- `js/common.js` regroupe les utilitaires partagés (sélecteur DOM, échappement HTML et validation du jeton TMDB) ; `js/tmdb.js` centralise les requêtes HTTP TMDB.
 - `css/app.css` et `css/tools.css` contiennent les styles propres à chaque page ; `header.css` porte le style commun de navigation.
 - `mavideotheque-db.js` reste responsable de la base IndexedDB locale.
