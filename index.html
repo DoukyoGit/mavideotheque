@@ -785,6 +785,7 @@ function renderKodiSagaOptions(){
  select.innerHTML='<option value="">Toutes les sagas</option>'+[...sagas].sort((a,b)=>a[1].localeCompare(b[1],'fr',{sensitivity:'base'})).map(([id,name])=>'<option value="'+esc(id)+'">'+esc(name)+'</option>').join('');
  select.value=selected;
 }
+let kodiSagaLoadErrors=0;
 async function loadKodiMovieMeta(movie){
  const id=String(movie.tmdbId||'');
  if(!/^\d+$/.test(id)||kodiSagaByMovie.has(id)||kodiMetaPending.has(id))return kodiMetaPending.get(id);
@@ -796,20 +797,26 @@ async function loadKodiMovieMeta(movie){
     const record=await getFilmRecord(local.id);
     tmdb=record.tmdb||null;
    }
-   if(!tmdb){
-    tmdb=await window.VideothequeDB.getSetting('kodiMeta:'+id);
-    if(!tmdb&&quickTmdb) {
+   let collection=tmdb?.collection||null;
+   if(!collection){
+    const cached=await window.VideothequeDB.getSetting('kodiMeta:'+id);
+    collection=cached?.collection||null;
+   }
+   // Une fiche locale ou un cache sans collection ne doit pas empêcher
+   // une nouvelle consultation de TMDB.
+   if(!collection){
+    if(!quickTmdb)await quickTokenState();
+    if(quickTmdb){
      const detail=await quickTmdbApi('/movie/'+encodeURIComponent(id),{language:'fr-FR'});
-     tmdb={collection:detail.belongs_to_collection?{id:detail.belongs_to_collection.id,name:detail.belongs_to_collection.name}:null};
-     await window.VideothequeDB.setSetting('kodiMeta:'+id,tmdb);
+     collection=detail.belongs_to_collection?{id:detail.belongs_to_collection.id,name:detail.belongs_to_collection.name}:null;
+     await window.VideothequeDB.setSetting('kodiMeta:'+id,{collection});
     }
    }
-   const collection=tmdb?.collection;
    if(collection?.id&&collection?.name)kodiSagaByMovie.set(id,{id:String(collection.id),name:collection.name});
    else kodiSagaByMovie.set(id,null);
    renderKodiSagaOptions();
    if(kodiPageSaga)renderKodiMovies();
-  }catch(error){/* Les métadonnées de saga restent indisponibles pour ce film. */}
+  }catch(error){kodiSagaLoadErrors++}
  })();
  kodiMetaPending.set(id,task);
  try{await task}finally{kodiMetaPending.delete(id)}
@@ -822,8 +829,11 @@ async function loadAllKodiSagaMetadata(){
  await Promise.all(Array.from({length:Math.min(4,queue.length)},async()=>{
   while(next<queue.length){const movie=queue[next++];await loadKodiMovieMeta(movie)}
  }));
- const select=$('#kodiPageSaga');
+ const select=$('#kodiPageSaga'),count=kodiSagaByMovie.size;
  if(select&&select.options.length===1)select.options[0].textContent='Aucune saga identifiée';
+ const summary=$('#kodiPageCount');
+ if(summary&&kodiSagaLoadErrors)summary.textContent+=' · '+kodiSagaLoadErrors+' fiche(s) TMDB non récupérée(s) — vérifie le jeton TMDB ou réessaie';
+ else if(summary&&count===0&&queue.length)summary.textContent+=' · Aucune collection TMDB détectée parmi les films identifiés';
 }
 
 async function loadKodiPoster(id){
