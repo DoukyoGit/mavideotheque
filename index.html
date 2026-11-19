@@ -773,9 +773,63 @@ async function loadKodiSnapshot(){
   kodiSnapshotSyncedAt=snapshot?.syncedAt||null;
  }catch(error){kodiMoviesSnapshot=[];kodiTmdbIds=new Set();kodiSnapshotSyncedAt=null}
 }
-let kodiPageQuery='',kodiPageSort='title',kodiPageDirection=1;
-const kodiPosterCache=new Map(),kodiPosterPending=new Set();
-let kodiPosterObserver;
+let kodiPageQuery='',kodiPageSort='title',kodiPageDirection=1,kodiPageSaga='';
+const kodiPosterCache=new Map(),kodiPosterPending=new Set(),kodiSagaByMovie=new Map(),kodiMetaPending=new Map();
+let kodiPosterObserver,kodiSagaLoadStarted=false;
+function kodiCollectionId(movie){
+ const id=movie?.collection?.id;
+ return id==null?'':String(id);
+}
+function renderKodiSagaOptions(){
+ const select=$('#kodiPageSaga');
+ if(!select)return;
+ const selected=kodiPageSaga;
+ const sagas=new Map();
+ kodiSagaByMovie.forEach(meta=>{if(meta?.id&&meta?.name)sagas.set(String(meta.id),meta.name)});
+ select.innerHTML='<option value="">Toutes les sagas</option>'+[...sagas].sort((a,b)=>a[1].localeCompare(b[1],'fr',{sensitivity:'base'})).map(([id,name])=>'<option value="'+esc(id)+'">'+esc(name)+'</option>').join('');
+ select.value=selected;
+}
+async function loadKodiMovieMeta(movie){
+ const id=String(movie.tmdbId||'');
+ if(!/^\\d+$/.test(id)||kodiSagaByMovie.has(id)||kodiMetaPending.has(id))return kodiMetaPending.get(id);
+ const task=(async()=>{
+  try{
+   let tmdb=null;
+   const local=ALL.find(f=>String(f.id).replace(/^t/,'')===id);
+   if(local){
+    const record=await getFilmRecord(local.id);
+    tmdb=record.tmdb||null;
+   }
+   if(!tmdb){
+    tmdb=await window.VideothequeDB.getSetting('kodiMeta:'+id);
+    if(!tmdb&&quickTmdb) {
+     const detail=await quickTmdbApi('/movie/'+encodeURIComponent(id),{language:'fr-FR'});
+     tmdb={collection:detail.belongs_to_collection?{id:detail.belongs_to_collection.id,name:detail.belongs_to_collection.name}:null};
+     await window.VideothequeDB.setSetting('kodiMeta:'+id,tmdb);
+    }
+   }
+   const collection=tmdb?.collection;
+   if(collection?.id&&collection?.name)kodiSagaByMovie.set(id,{id:String(collection.id),name:collection.name});
+   else kodiSagaByMovie.set(id,null);
+   renderKodiSagaOptions();
+   if(kodiPageSaga)renderKodiMovies();
+  }catch(error){/* Les métadonnées de saga restent indisponibles pour ce film. */}
+ })();
+ kodiMetaPending.set(id,task);
+ try{await task}finally{kodiMetaPending.delete(id)}
+}
+async function loadAllKodiSagaMetadata(){
+ if(kodiSagaLoadStarted)return;
+ kodiSagaLoadStarted=true;
+ const queue=kodiMoviesSnapshot.filter(m=>m.tmdbId&&/^\\d+$/.test(String(m.tmdbId)));
+ let next=0;
+ await Promise.all(Array.from({length:Math.min(4,queue.length)},async()=>{
+  while(next<queue.length){const movie=queue[next++];await loadKodiMovieMeta(movie)}
+ }));
+ const select=$('#kodiPageSaga');
+ if(select&&select.options.length===1)select.options[0].textContent='Aucune saga identifiée';
+}
+
 async function loadKodiPoster(id){
  if(!/^\d+$/.test(String(id))||kodiPosterPending.has(String(id)))return;
  const key=String(id),selector='[data-kodi-poster="'+key+'"]';
@@ -808,13 +862,25 @@ function observeKodiPosters(){
 function renderKodiMovies(){
  const root=$('#kodiPage'),query=norm(kodiPageQuery.trim());
  const compare=(a,b)=>String(a||'').localeCompare(String(b||''),'fr',{numeric:true,sensitivity:'base'});
- const movies=kodiMoviesSnapshot.filter(m=>!query||norm([m.title,m.year,m.tmdbId].join(' ')).includes(query));
+ const movies=kodiMoviesSnapshot.filter(m=>{
+  if(query&&!norm([m.title,m.year,m.tmdbId].join(' ')).includes(query))return false;
+  if(kodiPageSaga&&String(kodiSagaByMovie.get(String(m.tmdbId||''))?.id||'')!==kodiPageSaga)return false;
+  return true;
+ });
+ const localFor=m=>m.tmdbId?ALL.find(f=>String(f.id).replace(/^t/,'')===String(m.tmdbId)):null;
  movies.sort((a,b)=>{
+  const la=localFor(a),lb=localFor(b);
   let result=0;
   if(kodiPageSort==='year')result=(Number(a.year)||0)-(Number(b.year)||0);
   else if(kodiPageSort==='playcount')result=(Number(a.playcount)||0)-(Number(b.playcount)||0);
   else if(kodiPageSort==='lastplayed')result=compare(a.lastplayed||'',b.lastplayed||'');
-  else result=compare(a.title||'',b.title||'');
+  else if(kodiPageSort==='rating'){
+   const av=la?.r==null?null:Number(la.r),bv=lb?.r==null?null:Number(lb.r);
+   result=av==null?(bv==null?0:1):bv==null?-1:av-bv;
+  }else if(kodiPageSort==='watched'){
+   result=compare(la?.w||'',lb?.w||'');
+   if(!la?.w)result=lb?.w?1:0;else if(!lb?.w)result=-1;
+  }else result=compare(a.title||'',b.title||'');
   return result*kodiPageDirection||compare(a.title||'',b.title||'');
  });
  const cards=movies.map(m=>{
@@ -836,12 +902,13 @@ function renderKodiPage(){
  const root=$('#kodiPage');
  const date=kodiSnapshotSyncedAt?new Date(kodiSnapshotSyncedAt).toLocaleString('fr-FR'):'';
  kodiPageQuery='';kodiPageSort='title';kodiPageDirection=1;
- root.innerHTML='<div class="topbar"><button class="btn alt" id="kodiPageBack" type="button">← Ma vidéothèque</button></div><h1>Films présents sur Kodi</h1><p class="mute kodi-page-summary">Dernière synchronisation : '+(date?esc(date):'aucune')+'</p><div class="kodi-page-controls"><input id="kodiPageSearch" type="search" placeholder="Rechercher un film…" aria-label="Rechercher dans les films Kodi"><select id="kodiPageSort" aria-label="Trier les films Kodi"><option value="title">Titre</option><option value="year">Année</option><option value="playcount">Nombre de lectures Kodi</option><option value="lastplayed">Dernière lecture Kodi</option></select><button class="btn alt sort-direction" id="kodiPageDirection" type="button" aria-label="Inverser l’ordre du tri">↑</button></div><p class="mute kodi-page-count" id="kodiPageCount" aria-live="polite"></p><div id="kodiGrid"></div>';
+ root.innerHTML='<div class="topbar"><button class="btn alt" id="kodiPageBack" type="button">← Ma vidéothèque</button></div><h1>Films présents sur Kodi</h1><p class="mute kodi-page-summary">Dernière synchronisation : '+(date?esc(date):'aucune')+'</p><div class="kodi-page-controls"><input id="kodiPageSearch" type="search" placeholder="Rechercher un film…" aria-label="Rechercher dans les films Kodi"><select id="kodiPageSaga" aria-label="Filtrer par saga"><option value="">Toutes les sagas</option></select><select id="kodiPageSort" aria-label="Trier les films Kodi"><option value="title">Titre</option><option value="year">Année</option><option value="rating">Note personnelle</option><option value="watched">Date de visionnage</option><option value="playcount">Nombre de lectures Kodi</option><option value="lastplayed">Dernière lecture Kodi</option></select><button class="btn alt sort-direction" id="kodiPageDirection" type="button" aria-label="Inverser l’ordre du tri">↑</button></div><p class="mute kodi-page-count" id="kodiPageCount" aria-live="polite"></p><div id="kodiGrid"></div>';
  $('#kodiPageBack').onclick=()=>{location.hash=''};
  $('#kodiPageSearch').addEventListener('input',e=>{kodiPageQuery=e.target.value;renderKodiMovies()});
+ $('#kodiPageSaga').addEventListener('change',e=>{kodiPageSaga=e.target.value;renderKodiMovies()});
  $('#kodiPageSort').addEventListener('change',e=>{kodiPageSort=e.target.value;renderKodiMovies()});
  $('#kodiPageDirection').addEventListener('click',()=>{kodiPageDirection*=-1;$('#kodiPageDirection').textContent=kodiPageDirection===1?'↑':'↓';$('#kodiPageDirection').setAttribute('aria-label',kodiPageDirection===1?'Tri croissant':'Tri décroissant');renderKodiMovies()});
- renderKodiMovies();
+ kodiPageSaga='';renderKodiSagaOptions();renderKodiMovies();loadAllKodiSagaMetadata();
 }
 function route(){
   const m=location.hash.match(/^#film\/([\w-]+?)(?:-[a-z0-9-]+)?$/i),s=location.hash.match(/^#saga\/(\d+)(?:-[a-z0-9-]+)?$/i),isSt=location.hash==='#stats',isDiscover=location.hash==='#discover'||location.hash.startsWith('#discover?'),isKodi=location.hash==='#kodi',discoverQuery=new URLSearchParams(location.hash.split('?')[1]||''),was=document.body.classList.contains('indetail');
