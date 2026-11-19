@@ -63,7 +63,7 @@ async function showDetail(id){
     if(currentFilmRouteId()!==String(id))return;
     const filmTitle=(f.tmdb&&f.tmdb.title)||(f.csv&&f.csv.title)||'Film';
     const canonicalHash=filmHref(id,filmTitle);
-    if(location.hash!==canonicalHash)history.replaceState(null,'',location.pathname+location.search+canonicalHash);
+    if(location.hash!==canonicalHash)history.replaceState(history.state,'',location.pathname+location.search+canonicalHash);
     el.innerHTML=detailHTML(f);
     document.title=filmTitle+' · Ma vidéothèque';
   }catch(e){if(currentFilmRouteId()!==String(id))return;el.innerHTML='<div class="topbar"><button class="btn alt" id="back" type="button">Ma vidéothèque</button></div><p class="mute">Impossible d’afficher ce film : '+esc(e.message)+'</p>'}
@@ -77,7 +77,7 @@ async function showSaga(id){
   const saga=await getSagaRecord(id);
   if(currentSagaRouteId()!==String(id))return;
   const sagaName=saga.name||'Saga',canonicalHash=sagaHref(id,sagaName);
-  if(location.hash!==canonicalHash)history.replaceState(null,'',location.pathname+location.search+canonicalHash);
+  if(location.hash!==canonicalHash)history.replaceState(history.state,'',location.pathname+location.search+canonicalHash);
   const parts=[...(saga.parts||[])].sort((a,b)=>(a.release_date||'9999').localeCompare(b.release_date||'9999'));
   const matches=parts.map(m=>{
    const exact='t'+m.id,film=ALL.find(a=>a.id===exact)||ALL.find(a=>a.id.startsWith(exact+'-')||a.id.startsWith(exact+'_'));

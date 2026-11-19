@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" class="app-booting">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -10,6 +10,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%9E%EF%B8%8F%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="./css/app.css?v=20261119-scrollcapture3">
 <link rel="stylesheet" href="./header.css">
+<style>html.app-booting body>header,html.app-booting body>main,html.app-booting body>#detail,html.app-booting body>#stats,html.app-booting body>#discover,html.app-booting body>#kodiPage{visibility:hidden}</style>
 </head>
 <body>
 <div id="tmdbMissingAlert" role="alert" aria-live="assertive" hidden><span><strong>Jeton TMDB manquant.</strong> La recherche et l’ajout de films nécessitent un jeton TMDB.</span><a href="./tools.html">Configurer dans Outils → Jeton TMDB</a></div>
@@ -53,8 +54,8 @@
 <script src="./js/common.js?v=20261119-rationalisation1"></script>
 <script src="./js/tmdb.js?v=20261119-rationalisation1"></script>
 <script src="./js/app.js?v=20261119-split1"></script>
-<script src="./js/app-film.js?v=20261119-same-spirit1"></script>
-<script src="./js/app-kodi.js?v=20261119-split1"></script>
+<script src="./js/app-film.js?v=20261119-navigation1"></script>
+<script src="./js/app-kodi.js?v=20261119-navigation1"></script>
 <script src="./js/app-stats.js?v=20261119-split1"></script>
 <script src="./js/app-discover.js?v=20261119-split1"></script>
 </body>

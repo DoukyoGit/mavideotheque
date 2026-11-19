@@ -163,16 +163,34 @@ function renderKodiPage(){
  $('#kodiPageDirection').addEventListener('click',()=>{kodiPageDirection*=-1;$('#kodiPageDirection').textContent=kodiPageDirection===1?'↑':'↓';$('#kodiPageDirection').setAttribute('aria-label',kodiPageDirection===1?'Tri croissant':'Tri décroissant');renderKodiMovies()});
  kodiPageSaga='';renderKodiSagaOptions();renderKodiMovies();loadAllKodiSagaMetadata();
 }
+let restoringHistoryNavigation=false,routeSequence=0;
+if('scrollRestoration' in history)history.scrollRestoration='manual';
+window.addEventListener('scroll',()=>{
+  history.replaceState({...history.state,vtScrollY:window.scrollY},'',location.href);
+},{passive:true});
+window.addEventListener('popstate',()=>{restoringHistoryNavigation=true});
 function route(){
+  const sequence=++routeSequence;
   const m=location.hash.match(/^#film\/([\w-]+?)(?:-[a-z0-9-]+)?$/i),s=location.hash.match(/^#saga\/(\d+)(?:-[a-z0-9-]+)?$/i),isSt=location.hash==='#stats',isDiscover=location.hash==='#discover'||location.hash.startsWith('#discover?'),isKodi=location.hash==='#kodi',discoverQuery=new URLSearchParams(location.hash.split('?')[1]||''),was=document.body.classList.contains('indetail');
+  const fromHistory=restoringHistoryNavigation;
+  restoringHistoryNavigation=false;
+  let pageTask=null,restoreY=0;
   if(m||s||isSt||isDiscover||isKodi){
     if(!was)gridScroll=window.scrollY;
-    document.body.classList.add('indetail');window.scrollTo(0,0);
+    restoreY=fromHistory?Math.max(0,Number(history.state&&history.state.vtScrollY)||0):0;
+    document.body.classList.add('indetail');
     $('#detail').classList.toggle('hide',!(m||s));$('#stats').classList.toggle('hide',!isSt);$('#discover').classList.toggle('hide',!isDiscover);$('#kodiPage').classList.toggle('hide',!isKodi);
-    if(m)showDetail(m[1]);else if(s)showSaga(s[1]);else if(isSt)showStats();else if(isDiscover)showDiscover(discoverQuery.get('keyword'),discoverQuery.get('name'));else renderKodiPage();
+    if(m)pageTask=showDetail(m[1]);else if(s)pageTask=showSaga(s[1]);else if(isSt)pageTask=showStats();else if(isDiscover)pageTask=showDiscover(discoverQuery.get('keyword'),discoverQuery.get('name'));else pageTask=renderKodiPage();
+    window.scrollTo(0,0);
   }else{
     document.body.classList.remove('indetail');$('#detail').classList.add('hide');$('#stats').classList.add('hide');$('#discover').classList.add('hide');$('#kodiPage').classList.add('hide');document.title='Ma vidéothèque';
-    if(was)window.scrollTo(0,gridScroll);
+    restoreY=fromHistory?Math.max(0,Number(history.state&&history.state.vtScrollY)||0):(was?gridScroll:0);
   }
+  return Promise.resolve(pageTask).catch(e=>console.error('Erreur de navigation',e)).then(()=>{
+    if(sequence!==routeSequence)return;
+    window.scrollTo(0,restoreY);
+    document.documentElement.classList.remove('app-booting');
+  });
 }
+window.addEventListener('hashchange',route);
 window.addEventListener('hashchange',route);
