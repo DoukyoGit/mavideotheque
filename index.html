@@ -777,7 +777,7 @@ let kodiPageQuery='',kodiPageSort='title',kodiPageDirection=1;
 const kodiPosterCache=new Map(),kodiPosterPending=new Set();
 let kodiPosterObserver;
 async function loadKodiPoster(id){
- if(!/^\\d+$/.test(String(id))||kodiPosterPending.has(String(id)))return;
+ if(!/^\d+$/.test(String(id))||kodiPosterPending.has(String(id)))return;
  const key=String(id),selector='[data-kodi-poster="'+key+'"]';
  kodiPosterPending.add(key);
  try{
@@ -786,7 +786,7 @@ async function loadKodiPoster(id){
    path=await window.VideothequeDB.getSetting('kodiPoster:'+key);
    if(path===undefined||path===null){
     const movie=await quickTmdbApi('/movie/'+encodeURIComponent(key),{language:'fr-FR'});
-    path=typeof movie.poster_path==='string'&&/^\\/[A-Za-z0-9._-]+$/.test(movie.poster_path)?movie.poster_path:'';
+    path=typeof movie.poster_path==='string'&&/^\/[A-Za-z0-9._-]+$/.test(movie.poster_path)?movie.poster_path:'';
     await window.VideothequeDB.setSetting('kodiPoster:'+key,path);
    }
    kodiPosterCache.set(key,path);
