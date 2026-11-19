@@ -338,3 +338,7 @@ header .bar{width:100%;margin:0}
 .kodi-card .meta{font-size:.8rem;line-height:1.25;color:var(--mute)}.kodi-card .kodi-filename{font-size:.76rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.82}
 .kodi-card:hover h2{text-decoration:underline;text-underline-offset:3px}
 @media(max-width:520px){.kodi-card h2{font-size:.91rem}.kodi-card .meta{font-size:.75rem}}
+/* Fiche film : conserver les deux notes sur une seule ligne */
+.scorebox{flex-wrap:nowrap}
+.scorebox>.score{flex:1 1 0;min-width:0}
+.scorebox .score-text{min-width:0}
