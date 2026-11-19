@@ -25,7 +25,7 @@ function detailHTML(f){
   const inLibrary=!!entry;
   const scoreHTML=(()=>{
     const cal='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>';
-    const mine=`<div class="score"><span class="score-badge ${rate!=null?rcls(rate):'empty'}" title="${rate!=null?'Ma note : '+fmtR(rate)+' sur 10':'Ma note à renseigner'}">${rate!=null?fmtR(rate):'–'}<small>/10</small></span><div class="score-text"><span class="score-label">Ma note</span><span class="score-sub">${cal}Vu le ${watchedDate?fmtD(watchedDate):'–'}</span></div></div>`;
+    const mine=`<div class="score"><span class="score-badge ${rate!=null?rcls(rate):'empty'}" title="${rate!=null?'Ma note : '+fmtR(rate)+' sur 10':'Ma note à renseigner'}">${rate!=null?fmtR(rate):'–'}<small>/10</small></span><div class="score-text"><span class="score-label">Ma note</span><span class="score-sub">${cal}${watchedDate?fmtD(watchedDate):'–'}</span></div></div>`;
     const avg=Number(t.voteAverage),n=Number(t.voteCount);
     const tmdb=avg>0?`<div class="score"><span class="score-pill" title="Note moyenne TMDB : ${fmtR(avg)} sur 10">${fmtR(avg)}<small>/10</small></span><div class="score-text"><span class="score-label">TMDB</span>${n>0?`<span class="score-sub">${fmtV(n)} vote${n>1?'s':''}</span>`:''}</div></div>`:'';
     const editor='';
