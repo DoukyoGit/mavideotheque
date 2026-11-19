@@ -1,12 +1,12 @@
 'use strict';
-const {$,esc}=window.VideothequeCommon;
+const {$,esc,isValidTmdbToken}=window.VideothequeCommon;
 try{localStorage.removeItem('mavideotheque_github_token');localStorage.removeItem('mavideotheque_tmdb_token')}catch(e){}
 
 function setStatus(el,msg,cls=''){el.textContent=msg;el.className=cls||'mute'}
 async function saveToken(){
  const value=$('#token').value.trim();
  if(!value){setStatus($('#tokenState'),'Colle d’abord ton jeton TMDB Read Access Token.','bad');return}
- if(!/^[A-Za-z0-9._-]+$/.test(value)){setStatus($('#tokenState'),'Le jeton contient des caractères non autorisés (espace, retour à la ligne ou caractère invisible). Recopie le Read Access Token directement depuis TMDB.','bad');return}
+ if(!isValidTmdbToken(value)){setStatus($('#tokenState'),'Le jeton contient des caractères non autorisés (espace, retour à la ligne ou caractère invisible). Recopie le Read Access Token directement depuis TMDB.','bad');return}
  if(value.length<40){setStatus($('#tokenState'),'Le jeton semble trop court. Utilise le Read Access Token, pas la clé API v3.','bad');return}
  $('#saveToken').disabled=true;
  try{await window.VideothequeDB.setSetting('tmdbToken',value);setStatus($('#tokenState'),'Jeton TMDB enregistré dans IndexedDB sur cet appareil.','good')}
