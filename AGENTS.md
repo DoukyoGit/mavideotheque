@@ -74,7 +74,8 @@ La sauvegarde `.jsonl.gz` contient le catalogue, les fiches référencées et le
 3. Préserver les données locales, notes, dates et champs des fiches.
 4. Privilégier les changements ciblés ; éviter les refontes sans nécessité.
 5. Vérifier la syntaxe de chaque script JavaScript classique modifié et l’équilibre des accolades CSS.
-6. Relire les fichiers après publication et vérifier les références/cache-busters dans les pages HTML.
-7. Annoncer uniquement les vérifications réellement effectuées et toujours communiquer le SHA complet du commit publié.
+6. **À chaque modification d’un fichier CSS ou JavaScript, mettre à jour son paramètre de version (`?v=...`) dans toutes les pages HTML qui le chargent.** Utiliser une nouvelle valeur unique à chaque publication concernée : sans cela, le navigateur peut conserver l’ancienne ressource en cache et la modification sembler ne pas s’appliquer. Ne pas oublier cette étape, même si le chemin du fichier ne change pas.
+7. Relire les fichiers après publication et vérifier les références/cache-busters dans les pages HTML : chaque ressource modifiée doit être appelée avec sa nouvelle version.
+8. Annoncer uniquement les vérifications réellement effectuées et toujours communiquer le SHA complet du commit publié.
 
 Ne jamais affirmer qu’un changement est publié ou fonctionnel avant d’avoir vérifié le commit et relu les fichiers concernés.
