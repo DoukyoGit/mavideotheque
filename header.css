@@ -1,0 +1,80 @@
+/* En-tête principal partagé par toutes les pages */
+.brandbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:nowrap;
+  gap:10px;
+  min-height:42px;
+  position:relative;
+}
+.brand-title{
+  position:relative;
+  z-index:1;
+  flex:0 1 auto;
+  min-width:0;
+  margin:0;
+  color:var(--ink);
+  font:600 1.5rem/1.1 Georgia,"Times New Roman",serif;
+  letter-spacing:-.01em;
+  white-space:nowrap;
+}
+.brand-title a,
+.brand-title a:hover{
+  color:inherit;
+  text-decoration:none;
+}
+.head-actions{
+  position:relative;
+  z-index:2;
+  display:flex;
+  align-items:center;
+  gap:2px;
+  flex:none;
+}
+.head-actions .icon-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 42px;
+  width:42px;
+  min-width:42px;
+  height:42px;
+  padding:0;
+  border:0;
+  border-radius:50%;
+  background:transparent;
+  color:var(--mute);
+  text-decoration:none;
+  transition:background .15s,color .15s;
+}
+.head-actions .icon-btn:hover,
+.head-actions .icon-btn[aria-current]{
+  color:var(--ink);
+  background:color-mix(in srgb,var(--ink) 9%,transparent);
+}
+.head-actions .icon-btn svg{
+  display:block;
+  flex:none;
+  width:22px;
+  min-width:22px;
+  height:22px;
+  min-height:22px;
+}
+@media(max-width:520px){
+  .brandbar{gap:4px}
+  .brand-title{font-size:1.28rem}
+  .head-actions{gap:0}
+  .head-actions .icon-btn{
+    flex-basis:36px;
+    width:36px;
+    min-width:36px;
+    height:40px;
+  }
+  .head-actions .icon-btn svg{
+    width:20px;
+    min-width:20px;
+    height:20px;
+    min-height:20px;
+  }
+}
