@@ -60,3 +60,12 @@ Ne jamais annoncer une vérification comme réussie si elle n’a pas réellemen
 - Les pages peuvent définir séparément le cadre du `header` (position, largeur, marge, arrière-plan) si leur mise en page l’exige, sans modifier la présentation commune des éléments internes.
 - Le titre reste visible, neutre et non souligné ; il constitue le lien de retour à l’accueil. Les icônes restent sur une seule ligne, y compris sur mobile.
 - Pour toute nouvelle page, reprendre la structure HTML et les classes existantes et charger `header.css` plutôt que créer un nouvel en-tête.
+
+## Organisation du code — convention obligatoire
+
+- Les scripts ne doivent pas être écrits directement dans les pages HTML. La page principale charge `js/common.js` puis `js/app.js` ; la page Outils charge `js/common.js` puis `js/tools.js`. Respecter cet ordre de chargement classique (sans `async` ni `defer`) tant que le code dépend de l’ordre global.
+- Les utilitaires réellement communs (`$`, `esc`, validation du jeton TMDB) vivent dans `js/common.js` via `window.VideothequeCommon`. Ne pas en recopier une variante locale.
+- Les styles de page vivent dans `css/app.css` et `css/tools.css`. Le style de navigation partagé reste dans `header.css`. Charger les CSS propres à la page avant `header.css`.
+- Garder les responsabilités métier séparées : l’application principale dans `js/app.js`, les workflows d’administration et de sauvegarde dans `js/tools.js`, l’accès IndexedDB dans `mavideotheque-db.js`.
+- Avant toute extraction ou modification, récupérer la version actuelle, préserver l’ordre d’initialisation et vérifier la syntaxe de chaque script classique. Ne pas convertir en modules ES sans traiter explicitement les dépendances et le routage.
+- Toute nouvelle page doit réutiliser `js/common.js`, les styles communs et la structure d’en-tête existante plutôt que dupliquer les utilitaires.
