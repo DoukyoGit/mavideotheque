@@ -776,10 +776,6 @@ async function loadKodiSnapshot(){
 let kodiPageQuery='',kodiPageSort='title',kodiPageDirection=1,kodiPageSaga='';
 const kodiPosterCache=new Map(),kodiPosterPending=new Set(),kodiSagaByMovie=new Map(),kodiMetaPending=new Map();
 let kodiPosterObserver,kodiSagaLoadStarted=false;
-function kodiCollectionId(movie){
- const id=movie?.collection?.id;
- return id==null?'':String(id);
-}
 function renderKodiSagaOptions(){
  const select=$('#kodiPageSaga');
  if(!select)return;
@@ -876,10 +872,13 @@ function renderKodiMovies(){
   else if(kodiPageSort==='lastplayed')result=compare(a.lastplayed||'',b.lastplayed||'');
   else if(kodiPageSort==='rating'){
    const av=la?.r==null?null:Number(la.r),bv=lb?.r==null?null:Number(lb.r);
-   result=av==null?(bv==null?0:1):bv==null?-1:av-bv;
+   if(av==null&&bv!=null)return 1;
+   if(bv==null&&av!=null)return -1;
+   result=av==null?0:av-bv;
   }else if(kodiPageSort==='watched'){
+   if(!la?.w&&lb?.w)return 1;
+   if(!lb?.w&&la?.w)return -1;
    result=compare(la?.w||'',lb?.w||'');
-   if(!la?.w)result=lb?.w?1:0;else if(!lb?.w)result=-1;
   }else result=compare(a.title||'',b.title||'');
   return result*kodiPageDirection||compare(a.title||'',b.title||'');
  });
