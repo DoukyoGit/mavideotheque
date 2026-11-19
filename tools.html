@@ -16,7 +16,7 @@
 /* En-tête commun aux trois pages */
 header{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 14px}
 .topbar{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--line)}
-.brandbar{justify-content:space-between;flex-wrap:nowrap}
+.brandbar{position:relative;justify-content:space-between;flex-wrap:nowrap}.brand-title{position:relative;z-index:1}.brand-title a{color:inherit;text-decoration:none}.brand-title a:hover{text-decoration:none}.header-home-hit{position:absolute;inset:0;z-index:0}.head-actions{position:relative;z-index:2}
 header .bar{width:100%;margin:0}
 .brandbar h1,.topbar #back{font:600 1.5rem/1.1 Georgia,"Times New Roman",serif;letter-spacing:-.01em;margin:0;color:var(--ink)}
 .topbar #back{background:transparent;border:0;padding:6px 0;cursor:pointer}
@@ -34,7 +34,7 @@ main{padding-top:20px}.brandbar h1 a{text-decoration:none}
 <body>
 <header>
   <div class="bar brandbar">
-    <h1><a href="./" aria-label="Accueil Ma vidéothèque">Ma vidéothèque</a></h1><div class="head-actions">
+    <h1 class="brand-title"><a href="./" aria-label="Accueil Ma vidéothèque">Ma vidéothèque</a></h1><a class="header-home-hit" href="./" aria-label="Retour à l’accueil"></a><div class="head-actions">
       <a class="icon-btn" href="./#kodi" aria-label="Films présents sur Kodi" title="Films présents sur Kodi"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M8 22h8M12 18v4M7 9h10v5H7z"/></svg></a>
       <a class="icon-btn" href="./#discover" aria-label="Découvrir" title="Découvrir"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2.2 4.8-4.8 2.2 2.2-4.8 4.8-2.2Z"/></svg></a>
       <a class="icon-btn" href="./#stats" aria-label="Statistiques" title="Statistiques"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20v-8M12 20V5M19 20v-5"/></svg></a>
