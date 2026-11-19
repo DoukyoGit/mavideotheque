@@ -1,4 +1,4 @@
-const {$,esc}=window.VideothequeCommon;
+const {$,esc,isValidTmdbToken}=window.VideothequeCommon;
 const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 let ALL=[],view=[],shown=120,dir=-1;
 let kodiMoviesSnapshot=[],kodiTmdbIds=new Set(),kodiSnapshotSyncedAt=null;
@@ -605,7 +605,7 @@ $('#stats').addEventListener('click',e=>{
 
 let quickTmdb='',searchTimer=null,searchSequence=0,searchBusy=false;
 async function quickTokenState(){try{quickTmdb=await window.VideothequeDB.getSetting('tmdbToken')||''}catch(e){quickTmdb=''}$('#tmdbMissingAlert').hidden=!!quickTmdb;return !!quickTmdb}
-async function quickTmdbApi(path,params={}){if(!quickTmdb||!/^[A-Za-z0-9._-]+$/.test(quickTmdb.trim()))throw Error('Jeton TMDB invalide : vérifie Outils → Jeton TMDB.');const u=new URL('https://api.themoviedb.org/3'+path);Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));const r=await fetch(u.href,{headers:{Authorization:'Bearer '+quickTmdb.trim()}});if(!r.ok)throw Error(r.status===401?'Jeton TMDB invalide ou expiré.':'Erreur TMDB '+r.status+'.');return r.json()}
+async function quickTmdbApi(path,params={}){if(!isValidTmdbToken(quickTmdb))throw Error('Jeton TMDB invalide : vérifie Outils → Jeton TMDB.');const u=new URL('https://api.themoviedb.org/3'+path);Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));const r=await fetch(u.href,{headers:{Authorization:'Bearer '+quickTmdb.trim()}});if(!r.ok)throw Error(r.status===401?'Jeton TMDB invalide ou expiré.':'Erreur TMDB '+r.status+'.');return r.json()}
 
 const DISCOVER_SORTS=[
  ['vote_average.desc','Note TMDB décroissante'],['vote_average.asc','Note TMDB croissante'],
