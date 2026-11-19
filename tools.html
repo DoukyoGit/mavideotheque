@@ -14,25 +14,34 @@
 
 
 /* En-tête commun aux trois pages */
-header{display:block;padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--line)}
+header{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 14px}
 .topbar{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--line)}
-.brandbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:nowrap;min-height:42px}
+.brandbar{justify-content:space-between;flex-wrap:nowrap}
 header .bar{width:100%;margin:0}
 .brandbar h1,.topbar #back{font:600 1.5rem/1.1 Georgia,"Times New Roman",serif;letter-spacing:-.01em;margin:0;color:var(--ink)}
 .topbar #back{background:transparent;border:0;padding:6px 0;cursor:pointer}
 .topbar{margin:0 -14px}
-.head-actions{display:flex;align-items:center;gap:2px}
-.icon-btn{width:42px;height:42px;min-width:42px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:0;background:transparent;color:var(--mute);border-radius:50%;text-decoration:none;transition:background .15s,color .15s}
+.head-actions{display:flex;align-items:center;gap:8px}
+.icon-btn{width:46px;height:46px;min-width:46px;padding:0;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:var(--mute)}
 .icon-btn:hover,.icon-btn[aria-current]{color:var(--ink);background:color-mix(in srgb,var(--ink) 9%,transparent)}
-.icon-btn svg{display:block;width:22px!important;height:22px!important;min-width:22px;min-height:22px}
-@media (max-width:520px){.brandbar h1,.topbar #back{font-size:1.28rem}}
+.head-actions .icon-btn svg{display:block;width:32px!important;height:32px!important;min-width:32px;min-height:32px}
+@media (max-width:520px){.brandbar h1,.topbar #back{font-size:1.2rem}.brandbar{gap:4px}.head-actions{gap:0}.head-actions .icon-btn{width:36px;min-width:36px;height:40px}.head-actions .icon-btn svg{width:20px!important;height:20px!important;min-width:20px;min-height:20px}}
 header .bar{max-width:900px;margin:0 auto}header{padding:8px 18px;position:sticky;top:0;z-index:20}
 main{padding-top:20px}.brandbar h1 a{text-decoration:none}
 .workflow-choice .wico{color:var(--mute);margin-bottom:2px}
 </style>
 </head>
 <body>
-<header><div class="bar brandbar"><h1><a href="./" aria-label="Retour à Ma vidéothèque">Ma vidéothèque</a></h1><div class="head-actions"><a class="icon-btn" href="./#stats" aria-label="Statistiques" title="Statistiques"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20v-8M12 20V5M19 20v-5"/></svg></a><a class="icon-btn" aria-current="page" href="tools.html" aria-label="Paramètres et outils" title="Paramètres et outils"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></a></div></div></header>
+<header>
+  <div class="bar brandbar">
+    <h1><a href="./" aria-label="Accueil Ma vidéothèque">Ma vidéothèque</a></h1><div class="head-actions">
+      <a class="icon-btn" href="./#kodi" aria-label="Films présents sur Kodi" title="Films présents sur Kodi"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M8 22h8M12 18v4M7 9h10v5H7z"/></svg></a>
+      <a class="icon-btn" href="./#discover" aria-label="Découvrir" title="Découvrir"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2.2 4.8-4.8 2.2 2.2-4.8 4.8-2.2Z"/></svg></a>
+      <a class="icon-btn" href="./#stats" aria-label="Statistiques" title="Statistiques"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20v-8M12 20V5M19 20v-5"/></svg></a>
+      <a class="icon-btn" href="tools.html" aria-label="Paramètres et outils" title="Paramètres et outils" aria-current="page"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></a>
+    </div>
+  </div>
+</header>
 <main>
 <p class="mute">Choisis entre la gestion de ta vidéothèque et l’export CSV vers Letterboxd.</p>
 <p class="status warn">Les données de ta vidéothèque sont stockées localement dans ce navigateur. Crée régulièrement une sauvegarde .jsonl.gz et conserve-la sur Google Drive. Le fichier n’est pas chiffré.</p>
