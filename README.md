@@ -36,3 +36,10 @@ La sauvegarde complète est un fichier `.jsonl.gz` créé localement. Elle conti
 ## Fonctionnement technique
 
 L’application est composée de fichiers HTML, CSS et JavaScript statiques hébergés par GitHub Pages. Les traitements s’exécutent dans le navigateur à la suite des actions de l’utilisateur. Aucun serveur applicatif ni synchronisation distante des données personnelles n’est utilisé.
+
+## Organisation des fichiers
+
+- `index.html` et `tools.html` contiennent la structure des pages ; leur JavaScript est séparé dans `js/app.js` et `js/tools.js`.
+- `js/common.js` regroupe les utilitaires partagés (sélecteur DOM, échappement HTML et validation du jeton TMDB).
+- `css/app.css` et `css/tools.css` contiennent les styles propres à chaque page ; `header.css` porte le style commun de navigation.
+- `mavideotheque-db.js` reste responsable de la base IndexedDB locale.
