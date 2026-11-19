@@ -97,18 +97,18 @@ async function kodiCompare(){
   const appFilms=appIndex.films,byTmdb=new Map(),ignoredValue=await window.VideothequeDB.getSetting('kodiIgnoredMovies'),ignored=new Set(Array.isArray(ignoredValue)?ignoredValue:[]);
   for(const f of appFilms){const tid=appTmdbId(f);if(tid){if(!byTmdb.has(tid))byTmdb.set(tid,[]);byTmdb.get(tid).push(f)}}
   kodiSetStatus('kodiCompareStatus','Comparaison TMDB stricte de '+appFilms.length+' entrées avec '+kodiMovies.length+' films Kodi…');
-  const appOnly=[],kodiOnly=[],unidentified=[],lowRated=[],lowRatedIds=new Set();
+  const appOnly=[],kodiOnly=[],unidentified=[];
   for(const m of kodiMovies){
    const tid=kodiTmdbId(m),title=m.title||m.originaltitle||'Titre inconnu',year=Number(m.year)||null,watched=kodiWatched(m),ignoreKey=tid?'tmdb:'+tid:'kodi:'+String(m.movieid??(title+'|'+(year||'')));
    if(ignored.has(ignoreKey))continue;
    if(!tid){unidentified.push({title,year,ignoreKey,detail:(watched?'Kodi : vu':'Kodi : non vu')+' · aucun identifiant TMDB fourni par Kodi.'});continue}
    const candidates=byTmdb.get(tid)||[];
    if(!candidates.length){if(watched)kodiOnly.push({title,year,ignoreKey,detail:'Kodi : vu · absent de ta vidéothèque · TMDB '+tid});continue}
-   for(const f of candidates){const rating=Number(f.r);if(Number.isFinite(rating)&&rating>=1&&rating<5&&!lowRatedIds.has(f.id)){lowRatedIds.add(f.id);lowRated.push({title:f.t||title,year:f.y||year,filmId:f.id,ignoreKey,detail:'Ta note : '+rating+'/10'+(f.w?' · vu le '+f.w:'')+' · TMDB '+tid})}}const seen=candidates.some(appWatched);
+   const seen=candidates.some(appWatched);
    if(seen&&!watched){const f=candidates.find(appWatched);appOnly.push({title:f.t||title,year:f.y||year,filmId:f.id,ignoreKey,detail:'Application : vu le '+f.w+' · Kodi : non vu · TMDB '+tid})}
    else if(watched&&!seen)kodiOnly.push({title:candidates[0].t||title,year:candidates[0].y||year,filmId:candidates[0].id,ignoreKey,detail:'Kodi : vu · application : non marqué vu · TMDB '+tid});
   }
-  kodiRenderList('kodiAppOnly',appOnly);kodiRenderList('kodiKodiOnly',kodiOnly);kodiRenderList('kodiUnidentified',unidentified);kodiRenderList('kodiLowRated',lowRated);
+  kodiRenderList('kodiAppOnly',appOnly);kodiRenderList('kodiKodiOnly',kodiOnly);kodiRenderList('kodiUnidentified',unidentified);
   $('#kodiSummary').classList.remove('hide');$('#kodiSummary').innerHTML='<div class="results"><article class="comparison-item"><b data-kodi-summary="kodiAppOnly">'+appOnly.length+'</b><span class="mute">Vus dans l’application, non vus dans Kodi</span></article><article class="comparison-item"><b data-kodi-summary="kodiKodiOnly">'+kodiOnly.length+'</b><span class="mute">Vus dans Kodi, non marqués vus dans l’application</span></article><article class="comparison-item"><b data-kodi-summary="kodiUnidentified">'+unidentified.length+'</b><span class="mute">Films Kodi sans identifiant TMDB</span></article><article class="comparison-item"><b data-kodi-summary="kodiLowRated">'+lowRated.length+'</b><span class="mute">Présents dans Kodi, notés strictement moins de 5/10</span></article></div><p class="mute">Comparaison terminée : '+kodiMovies.length+' films Kodi et '+appFilms.length+' entrées dans l’application. Les exclusions sont conservées dans IndexedDB.</p>';
   $('#kodiResults').classList.remove('hide');kodiSetStatus('kodiCompareStatus','Comparaison terminée. Aucun élément n’a été modifié.','good');
  }catch(e){let msg=e.message||'Erreur inconnue.';if(/Failed to fetch|NetworkError|WebSocket/i.test(msg))msg+=' Chrome peut bloquer l’accès au réseau local : autorise-le pour ce site.';kodiSetStatus('kodiCompareStatus',msg,'bad')}
