@@ -5,6 +5,6 @@
 
 /* Cadre de l’en-tête propre à la page Outils ; présentation partagée dans header.css */
 header{background:var(--bg);border-bottom:1px solid var(--line);padding:8px 18px}
-header .bar{max-width:900px;margin:0 auto}header{padding:8px 18px;position:sticky;top:0;z-index:20}
+header .bar{max-width:900px;margin:0 auto}header{padding:8px 18px;}
 main{padding-top:20px}.brandbar h1 a{text-decoration:none}
 .workflow-choice .wico{color:var(--mute);margin-bottom:2px}
