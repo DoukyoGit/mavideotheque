@@ -368,7 +368,7 @@ header .bar{width:100%;margin:0}
 .kodi-card .poster{position:relative;aspect-ratio:2/3;border-radius:8px;overflow:hidden;background:var(--panel);border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.12)}
 .kodi-card .poster img{width:100%;height:100%;object-fit:cover;display:block}
 .kodi-card h2{font:600 .95rem/1.25 Georgia,serif;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.kodi-card .meta{font-size:.8rem;line-height:1.25;color:var(--mute)}
+.kodi-card .meta{font-size:.8rem;line-height:1.25;color:var(--mute)}.kodi-card .kodi-filename{font-size:.76rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.82}
 .kodi-card:hover h2{text-decoration:underline;text-underline-offset:3px}
 @media(max-width:520px){.kodi-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 11px}.kodi-card h2{font-size:.91rem}.kodi-card .meta{font-size:.75rem}}
 </style>
@@ -909,7 +909,7 @@ function renderKodiMovies(){
   const personal=local&&local.r!=null?'<span class="badge personal-rating poster-personal-rating '+rcls(Number(local.r))+'">'+fmtR(local.r)+'<small>/10</small></span>':'';
   const rating=local&&tmdbRatings.has(local.id)?'<span class="badge tmdb">'+fmtR(tmdbRatings.get(local.id))+'</span>':'';
   const watched=local&&local.w?'<span class="poster-date">'+EYE+'<span>Vu le '+fmtD(local.w)+'</span></span>':'';
-  const body='<div class="poster">'+poster+rating+personal+watched+'</div><div class="card-heading"><h2>'+esc(m.title||'Titre inconnu')+'</h2></div><div class="meta">'+(m.year?esc(m.year):'')+'</div>';
+  const body='<div class="poster">'+poster+rating+personal+watched+'</div><div class="card-heading"><h2>'+esc(m.title||'Titre inconnu')+'</h2></div>'+(m.fileName?'<div class="meta kodi-filename" title="'+esc(m.fileName)+'">'+esc(m.fileName)+'</div>':'')+'<div class="meta">'+(m.year?esc(m.year):'')+'</div>';
   return tmdbId?'<a class="kodi-card" href="'+esc(filmHref('t'+tmdbId,local&&local.t||m.title))+'">'+body+'</a>':'<article class="kodi-card">'+body+'<div class="meta">Identifiant TMDB absent</div></article>';
  }).join('');
  const count=movies.length,empty=kodiMoviesSnapshot.length===0;
