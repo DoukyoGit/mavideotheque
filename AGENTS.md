@@ -51,3 +51,12 @@ L’import valide le fichier avant d’activer la nouvelle génération de donn�
 6. Relire les fichiers après publication et contrôler le fonctionnement de l’application.
 
 Ne jamais annoncer une vérification comme réussie si elle n’a pas réellement été exécutée.
+
+## En-tête et navigation — convention obligatoire
+
+- Le style partagé de l’en-tête est centralisé dans `header.css`. Toute page HTML qui reprend l’en-tête doit charger cette feuille après ses styles propres : `<link rel="stylesheet" href="./header.css">`.
+- Réutiliser la même structure : `.brandbar`, un titre `h1.brand-title` dont le lien pointe vers l’accueil, puis `.head-actions` contenant les liens d’icônes.
+- Ne pas recopier les règles CSS de `.brandbar`, `.brand-title`, `.head-actions` ou de leurs icônes dans une page. Ne pas ajouter de règle locale qui les redéfinit, notamment dans les media queries.
+- Les pages peuvent définir séparément le cadre du `header` (position, largeur, marge, arrière-plan) si leur mise en page l’exige, sans modifier la présentation commune des éléments internes.
+- Le titre reste visible, neutre et non souligné ; il constitue le lien de retour à l’accueil. Les icônes restent sur une seule ligne, y compris sur mobile.
+- Pour toute nouvelle page, reprendre la structure HTML et les classes existantes et charger `header.css` plutôt que créer un nouvel en-tête.
