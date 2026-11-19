@@ -774,6 +774,37 @@ async function loadKodiSnapshot(){
  }catch(error){kodiMoviesSnapshot=[];kodiTmdbIds=new Set();kodiSnapshotSyncedAt=null}
 }
 let kodiPageQuery='',kodiPageSort='title',kodiPageDirection=1;
+const kodiPosterCache=new Map(),kodiPosterPending=new Set();
+let kodiPosterObserver;
+async function loadKodiPoster(id){
+ if(!/^\\d+$/.test(String(id))||kodiPosterPending.has(String(id)))return;
+ const key=String(id),selector='[data-kodi-poster="'+key+'"]';
+ kodiPosterPending.add(key);
+ try{
+  let path=kodiPosterCache.get(key);
+  if(path===undefined){
+   path=await window.VideothequeDB.getSetting('kodiPoster:'+key);
+   if(path===undefined||path===null){
+    const movie=await quickTmdbApi('/movie/'+encodeURIComponent(key),{language:'fr-FR'});
+    path=typeof movie.poster_path==='string'&&/^\\/[A-Za-z0-9._-]+$/.test(movie.poster_path)?movie.poster_path:'';
+    await window.VideothequeDB.setSetting('kodiPoster:'+key,path);
+   }
+   kodiPosterCache.set(key,path);
+  }
+  const target=document.querySelector(selector);
+  if(target&&path)target.innerHTML='<img loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342'+esc(path)+'" alt="">';
+ }catch(error){/* L’affiche reste remplacée par les initiales si TMDB est indisponible. */}
+ finally{kodiPosterPending.delete(key)}
+}
+function observeKodiPosters(){
+ const elements=document.querySelectorAll('[data-kodi-poster]');
+ if(!('IntersectionObserver' in window)){elements.forEach(el=>loadKodiPoster(el.dataset.kodiPoster));return}
+ if(kodiPosterObserver)kodiPosterObserver.disconnect();
+ kodiPosterObserver=new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{if(entry.isIntersecting){kodiPosterObserver.unobserve(entry.target);loadKodiPoster(entry.target.dataset.kodiPoster)}})
+ },{rootMargin:'220px'});
+ elements.forEach(el=>kodiPosterObserver.observe(el));
+}
 function renderKodiMovies(){
  const root=$('#kodiPage'),query=norm(kodiPageQuery.trim());
  const compare=(a,b)=>String(a||'').localeCompare(String(b||''),'fr',{numeric:true,sensitivity:'base'});
@@ -788,7 +819,7 @@ function renderKodiMovies(){
  });
  const cards=movies.map(m=>{
   const tmdbId=String(m.tmdbId||''),local=tmdbId?ALL.find(f=>String(f.id).replace(/^t/,'')===tmdbId):null;
-  const poster=local&&local.p?'<img loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342'+esc(local.p)+'" alt="">':'<div class="noimg">'+esc(String(m.title||'?').slice(0,2))+'</div>';
+  const poster=local&&local.p?'<img loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342'+esc(local.p)+'" alt="">':tmdbId?'<div class="noimg" data-kodi-poster="'+esc(tmdbId)+'">'+esc(String(m.title||'?').slice(0,2))+'</div>':'<div class="noimg">'+esc(String(m.title||'?').slice(0,2))+'</div>';
   const personal=local&&local.r!=null?'<span class="badge personal-rating poster-personal-rating '+rcls(Number(local.r))+'">'+fmtR(local.r)+'<small>/10</small></span>':'';
   const rating=local&&tmdbRatings.has(local.id)?'<span class="badge tmdb">'+fmtR(tmdbRatings.get(local.id))+'</span>':'';
   const watched=local&&local.w?'<span class="poster-date">'+EYE+'<span>Vu le '+fmtD(local.w)+'</span></span>':'';
@@ -798,6 +829,7 @@ function renderKodiMovies(){
  const count=movies.length,empty=kodiMoviesSnapshot.length===0;
  $('#kodiPageCount').textContent=count+' film(s) affiché(s)'+(query?' sur '+kodiMoviesSnapshot.length:'');
  $('#kodiGrid').innerHTML=cards||(empty?'<p class="mute">Aucune liste enregistrée. Lance une comparaison avec Kodi dans Outils pour synchroniser les films présents dans sa bibliothèque.</p>':'<p class="mute">Aucun film ne correspond à cette recherche.</p>');
+ observeKodiPosters();
 }
 function renderKodiPage(){
  document.title='Films sur Kodi · Ma vidéothèque';
