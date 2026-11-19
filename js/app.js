@@ -676,7 +676,6 @@ function resetDiscoverFilters(){
  Array.from($('#discoverGenres').options).forEach(o=>o.selected=false);
  $('#discoverSort').value='vote_average.desc';$('#discoverKeywordQuery').value='';$('#discoverKeywordResults').innerHTML='';discoverKeywordIds=[];renderDiscoverKeywords();loadDiscover(true);
 }
-function discoverSelected(id){return Array.from($(id).selectedOptions).map(o=>o.value).filter(Boolean)}
 function discoverParams(){
  const params={language:'fr-FR',include_adult:'false',sort_by:$('#discoverSort').value,'vote_count.gte':'500',page:String(discoverPage)};
  const genre=$('#discoverGenres').value;
