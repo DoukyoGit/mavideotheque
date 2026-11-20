@@ -10,7 +10,7 @@ let kodiPageQuery='',kodiPageSort='title',kodiPageDirection=1,kodiPageSaga='';
 let kodiHideWatched=false,kodiPrimeFilter=false,kodiPrimeLoading=false,kodiPrimeProgress={done:0,total:0,errors:0},kodiPrimeRun=0;
 let kodiPageFilters={rmin:'',rmax:'',mmin:'',mmax:'',dfrom:'',dto:'',genre:''};
 const kodiPrimeAvailability=new Map(),KODI_PRIME_CACHE_TTL=7*24*60*60*1000;
-const kodiPosterCache=new Map(),kodiPosterPending=new Set(),kodiSagaByMovie=new Map(),kodiMetaPending=new Map();
+const kodiPosterCache=new Map(),kodiPosterPending=new Set(),kodiSagaByMovie=new Map(),kodiRuntimeByMovie=new Map(),kodiMetaPending=new Map();
 let kodiPosterObserver,kodiSagaLoadStarted=false;
 function renderKodiSagaOptions(){
  const select=$('#kodiPageSaga');
@@ -41,21 +41,21 @@ async function loadKodiMovieMeta(movie){
     const record=await getFilmRecord(local.id);
     tmdb=record.tmdb||null;
    }
-   let collection=tmdb?.collection||null;
-   if(!collection){
-    const cached=await window.VideothequeDB.getSetting('kodiMeta:'+id);
-    collection=cached?.collection||null;
-   }
-   // Une fiche locale ou un cache sans collection ne doit pas empêcher
-   // une nouvelle consultation de TMDB.
-   if(!collection){
+   const cached=await window.VideothequeDB.getSetting('kodiMeta:'+id);
+   let collection=tmdb?.collection||cached?.collection||null;
+   let runtime=Number(tmdb?.runtime)>0?Number(tmdb.runtime):Number(cached?.runtime)>0?Number(cached.runtime):null;
+   // La durée est nécessaire aux filtres Kodi, même sans fiche locale.
+   // Le détail TMDB complète aussi les anciennes entrées de cache.
+   if(!collection||runtime==null){
     if(!quickTmdb)await quickTokenState();
     if(quickTmdb){
      const detail=await quickTmdbApi('/movie/'+encodeURIComponent(id),{language:'fr-FR'});
-     collection=detail.belongs_to_collection?{id:detail.belongs_to_collection.id,name:detail.belongs_to_collection.name}:null;
-     await window.VideothequeDB.setSetting('kodiMeta:'+id,{collection});
+     if(!collection)collection=detail.belongs_to_collection?{id:detail.belongs_to_collection.id,name:detail.belongs_to_collection.name}:null;
+     if(runtime==null&&Number(detail.runtime)>0)runtime=Number(detail.runtime);
+     await window.VideothequeDB.setSetting('kodiMeta:'+id,{collection,runtime});
     }
    }
+   if(runtime!=null)kodiRuntimeByMovie.set(id,runtime);
    if(collection?.id&&collection?.name)kodiSagaByMovie.set(id,{id:String(collection.id),name:collection.name});
    else kodiSagaByMovie.set(id,null);
   }catch(error){kodiSagaLoadErrors++}
@@ -165,8 +165,9 @@ function renderKodiMovies(){
   if(kodiHideWatched&&local?.w)return false;
   if(rmin!=null&&(local?.r==null||Number(local.r)<rmin))return false;
   if(rmax!=null&&(local?.r==null||Number(local.r)>rmax))return false;
-  if(mmin!=null&&(!local?.m||Number(local.m)<mmin))return false;
-  if(mmax!=null&&(!local?.m||Number(local.m)>mmax))return false;
+  const runtime=local?.m??kodiRuntimeByMovie.get(String(m.tmdbId||''));
+  if(mmin!=null&&(runtime==null||Number(runtime)<mmin))return false;
+  if(mmax!=null&&(runtime==null||Number(runtime)>mmax))return false;
   if(kodiPageFilters.dfrom&&(!local?.w||local.w<kodiPageFilters.dfrom))return false;
   if(kodiPageFilters.dto&&(!local?.w||local.w>kodiPageFilters.dto))return false;
   if(kodiPageFilters.genre&&!(local?.g||[]).includes(kodiPageFilters.genre))return false;
