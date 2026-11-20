@@ -8,6 +8,7 @@ async function loadKodiSnapshot(){
 }
 let kodiPageQuery='',kodiPageSort='title',kodiPageDirection=1,kodiPageSaga='';
 let kodiPrimeFilter=false,kodiPrimeLoading=false,kodiPrimeProgress={done:0,total:0,errors:0},kodiPrimeRun=0;
+let kodiPageFilters={rmin:'',rmax:'',mmin:'',mmax:'',dfrom:'',dto:'',genre:''};
 const kodiPrimeAvailability=new Map(),KODI_PRIME_CACHE_TTL=7*24*60*60*1000;
 const kodiPosterCache=new Map(),kodiPosterPending=new Set(),kodiSagaByMovie=new Map(),kodiMetaPending=new Map();
 let kodiPosterObserver,kodiSagaLoadStarted=false;
@@ -154,13 +155,22 @@ async function loadKodiPrimeAvailability(){
 function renderKodiMovies(){
  const root=$('#kodiPage'),query=norm(kodiPageQuery.trim());
  const compare=(a,b)=>String(a||'').localeCompare(String(b||''),'fr',{numeric:true,sensitivity:'base'});
+ const localFor=m=>m.tmdbId?ALL.find(f=>String(f.id).replace(/^t/,'')===String(m.tmdbId)):null;
+ const rmin=kodiPageFilters.rmin===''?null:Number(kodiPageFilters.rmin),rmax=kodiPageFilters.rmax===''?null:Number(kodiPageFilters.rmax),mmin=kodiPageFilters.mmin===''?null:Number(kodiPageFilters.mmin),mmax=kodiPageFilters.mmax===''?null:Number(kodiPageFilters.mmax);
  const movies=kodiMoviesSnapshot.filter(m=>{
   if(query&&!norm([m.title,m.year,m.tmdbId].join(' ')).includes(query))return false;
   if(kodiPageSaga&&String(kodiSagaByMovie.get(String(m.tmdbId||''))?.id||'')!==kodiPageSaga)return false;
   if(kodiPrimeFilter&&kodiPrimeAvailability.get(String(m.tmdbId||''))!==true)return false;
+  const local=localFor(m);
+  if(rmin!=null&&(local?.r==null||Number(local.r)<rmin))return false;
+  if(rmax!=null&&(local?.r==null||Number(local.r)>rmax))return false;
+  if(mmin!=null&&(!local?.m||Number(local.m)<mmin))return false;
+  if(mmax!=null&&(!local?.m||Number(local.m)>mmax))return false;
+  if(kodiPageFilters.dfrom&&(!local?.w||local.w<kodiPageFilters.dfrom))return false;
+  if(kodiPageFilters.dto&&(!local?.w||local.w>kodiPageFilters.dto))return false;
+  if(kodiPageFilters.genre&&!(local?.g||[]).includes(kodiPageFilters.genre))return false;
   return true;
  });
- const localFor=m=>m.tmdbId?ALL.find(f=>String(f.id).replace(/^t/,'')===String(m.tmdbId)):null;
  movies.sort((a,b)=>{
   const la=localFor(a),lb=localFor(b);
   let result=0;
@@ -198,14 +208,21 @@ function renderKodiPage(){
  const root=$('#kodiPage');
  const date=kodiSnapshotSyncedAt?new Date(kodiSnapshotSyncedAt).toLocaleString('fr-FR'):'';
  kodiPageQuery='';kodiPageSort='title';kodiPageDirection=1;
- root.innerHTML='<div class="topbar"><button class="btn alt" id="kodiPageBack" type="button">← Ma vidéothèque</button></div><h1>Films présents sur Kodi</h1><p class="mute kodi-page-summary">Dernière synchronisation : '+(date?esc(date):'aucune')+'</p><div class="kodi-page-controls"><input id="kodiPageSearch" type="search" placeholder="Rechercher un film…" aria-label="Rechercher dans les films Kodi"><select id="kodiPageSaga" aria-label="Filtrer par saga" disabled><option value="">Chargement des sagas…</option></select><select id="kodiPageSort" aria-label="Trier les films Kodi"><option value="title">Titre</option><option value="year">Année</option><option value="rating">Note personnelle</option><option value="watched">Date de visionnage</option><option value="playcount">Nombre de lectures Kodi</option><option value="lastplayed">Dernière lecture Kodi</option></select><button class="btn alt sort-direction" id="kodiPageDirection" type="button" aria-label="Inverser l’ordre du tri">↑</button></div><p class="mute kodi-page-count" id="kodiPageCount" aria-live="polite"></p><label class="kodi-prime-filter"><input id="kodiPrimeFilter" type="checkbox"><span>Disponible dans l’abonnement Prime Video (France)</span></label><p class="mute kodi-prime-status" id="kodiPrimeStatus" role="status" aria-live="polite"></p><p class="mute kodi-prime-attribution">Disponibilités fournies par <a href="https://www.justwatch.com/fr" target="_blank" rel="noopener noreferrer">JustWatch</a> via TMDB.</p><div id="kodiGrid"></div>';
+ root.innerHTML='<div class="topbar"><button class="btn alt" id="kodiPageBack" type="button">← Ma vidéothèque</button></div><h1>Films présents sur Kodi</h1><p class="mute kodi-page-summary">Dernière synchronisation : '+(date?esc(date):'aucune')+'</p><div class="kodi-page-controls"><input id="kodiPageSearch" type="search" placeholder="Rechercher un film…" aria-label="Rechercher dans les films Kodi"><select id="kodiPageSaga" aria-label="Filtrer par saga" disabled><option value="">Chargement des sagas…</option></select><select id="kodiPageSort" aria-label="Trier les films Kodi"><option value="title">Titre</option><option value="year">Année</option><option value="rating">Note personnelle</option><option value="watched">Date de visionnage</option><option value="playcount">Nombre de lectures Kodi</option><option value="lastplayed">Dernière lecture Kodi</option></select><button class="btn alt sort-direction" id="kodiPageDirection" type="button" aria-label="Inverser l’ordre du tri">↑</button></div><button class="btn alt kodi-filter-toggle" id="kodiPageFilterToggle" type="button" aria-expanded="false">Filtres</button><div id="kodiPageFilters" class="kodi-page-filters hide"><div class="kodi-filter-fields"><label>Note personnelle<span class="two"><input id="kodiRmin" type="number" min="0" max="10" step="0.5" placeholder="min"><input id="kodiRmax" type="number" min="0" max="10" step="0.5" placeholder="max"></span></label><label>Durée (minutes)<span class="two"><input id="kodiMmin" type="number" min="0" placeholder="min"><input id="kodiMmax" type="number" min="0" placeholder="max"></span></label><label>Vu entre<span class="two"><input id="kodiDfrom" type="date"><input id="kodiDto" type="date"></span></label><label>Genre<select id="kodiGenre"><option value="">Tous</option></select></label></div><label class="kodi-prime-filter"><input id="kodiPrimeFilter" type="checkbox"><span>Disponible dans l’abonnement Prime Video (France)</span></label><p class="mute kodi-prime-status" id="kodiPrimeStatus" role="status" aria-live="polite"></p><button class="btn alt" id="kodiResetFilters" type="button">Réinitialiser les filtres</button></div><p class="mute kodi-page-count" id="kodiPageCount" aria-live="polite"></p><div id="kodiGrid"></div><p class="mute kodi-prime-attribution">Données de disponibilité fournies par <a href="https://www.justwatch.com/fr" target="_blank" rel="noopener noreferrer">JustWatch</a> via TMDB.</p>';
  $('#kodiPageBack').onclick=()=>{location.hash=''};
  $('#kodiPageSearch').addEventListener('input',e=>{kodiPageQuery=e.target.value;renderKodiMovies()});
  $('#kodiPageSaga').addEventListener('change',e=>{kodiPageSaga=e.target.value;renderKodiMovies()});
+ $('#kodiPageFilterToggle').addEventListener('click',()=>{const hidden=$('#kodiPageFilters').classList.toggle('hide');$('#kodiPageFilterToggle').setAttribute('aria-expanded',String(!hidden))});
+ const filterInputs={rmin:'#kodiRmin',rmax:'#kodiRmax',mmin:'#kodiMmin',mmax:'#kodiMmax',dfrom:'#kodiDfrom',dto:'#kodiDto',genre:'#kodiGenre'};
+ Object.entries(filterInputs).forEach(([key,selector])=>$(selector).addEventListener('input',e=>{kodiPageFilters[key]=e.target.value;renderKodiMovies()}));
+ $('#kodiResetFilters').addEventListener('click',()=>{kodiPageFilters={rmin:'',rmax:'',mmin:'',mmax:'',dfrom:'',dto:'',genre:''};Object.values(filterInputs).forEach(selector=>$(selector).value='');renderKodiMovies()});
  $('#kodiPageSort').addEventListener('change',e=>{kodiPageSort=e.target.value;renderKodiMovies()});
  $('#kodiPrimeFilter').addEventListener('change',e=>{kodiPrimeFilter=e.target.checked;if(kodiPrimeFilter){renderKodiMovies();loadKodiPrimeAvailability()}else{++kodiPrimeRun;kodiPrimeLoading=false;$('#kodiPrimeStatus').textContent='';renderKodiMovies()}});
  $('#kodiPageDirection').addEventListener('click',()=>{kodiPageDirection*=-1;$('#kodiPageDirection').textContent=kodiPageDirection===1?'↑':'↓';$('#kodiPageDirection').setAttribute('aria-label',kodiPageDirection===1?'Tri croissant':'Tri décroissant');renderKodiMovies()});
- kodiPageSaga='';kodiPrimeFilter=false;kodiPrimeLoading=false;++kodiPrimeRun;renderKodiSagaOptions();renderKodiMovies();loadAllKodiSagaMetadata();
+ kodiPageSaga='';kodiPrimeFilter=false;kodiPrimeLoading=false;++kodiPrimeRun;kodiPageFilters={rmin:'',rmax:'',mmin:'',mmax:'',dfrom:'',dto:'',genre:''};
+ const kodiGenres=[...new Set(kodiMoviesSnapshot.flatMap(movie=>{const local=movie.tmdbId?ALL.find(f=>String(f.id).replace(/^t/,'')===String(movie.tmdbId)):null;return local?.g||[]}))].sort((a,b)=>a.localeCompare(b,'fr',{sensitivity:'base'}));
+ $('#kodiGenre').innerHTML='<option value="">Tous</option>'+kodiGenres.map(genre=>'<option value="'+esc(genre)+'">'+esc(genre)+'</option>').join('');
+ renderKodiSagaOptions();renderKodiMovies();loadAllKodiSagaMetadata();
 }
 let restoringHistoryNavigation=false,routeSequence=0;
 if('scrollRestoration' in history)history.scrollRestoration='manual';
