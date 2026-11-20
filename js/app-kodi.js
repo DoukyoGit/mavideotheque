@@ -7,6 +7,8 @@ async function loadKodiSnapshot(){
  }catch(error){kodiMoviesSnapshot=[];kodiTmdbIds=new Set();kodiSnapshotSyncedAt=null}
 }
 let kodiPageQuery='',kodiPageSort='title',kodiPageDirection=1,kodiPageSaga='';
+let kodiPrimeFilter=false,kodiPrimeLoading=false,kodiPrimeProgress={done:0,total:0,errors:0},kodiPrimeRun=0;
+const kodiPrimeAvailability=new Map(),KODI_PRIME_CACHE_TTL=7*24*60*60*1000;
 const kodiPosterCache=new Map(),kodiPosterPending=new Set(),kodiSagaByMovie=new Map(),kodiMetaPending=new Map();
 let kodiPosterObserver,kodiSagaLoadStarted=false;
 function renderKodiSagaOptions(){
@@ -109,12 +111,53 @@ function observeKodiPosters(){
  },{rootMargin:'220px'});
  elements.forEach(el=>kodiPosterObserver.observe(el));
 }
+async function loadKodiPrimeAvailability(){
+ const run=++kodiPrimeRun,ids=[...new Set(kodiMoviesSnapshot.map(m=>String(m.tmdbId||'')).filter(id=>/^\\d+$/.test(id)))];
+ kodiPrimeLoading=true;kodiPrimeProgress={done:0,total:ids.length,errors:0};
+ const status=$('#kodiPrimeStatus');
+ if(status)status.textContent='Préparation du filtre Prime Video…';
+ try{
+  if(!await quickTokenState())throw new Error('Configure ton jeton TMDB dans Outils → Jeton TMDB pour vérifier les disponibilités Prime Video.');
+  const now=Date.now(),pending=[];
+  await Promise.all(ids.map(async id=>{
+   try{
+    const cached=await window.VideothequeDB.getSetting('kodiPrimeFR:'+id);
+    if(cached&&typeof cached.available==='boolean'&&Number.isFinite(cached.checkedAt)&&now-cached.checkedAt<KODI_PRIME_CACHE_TTL){kodiPrimeAvailability.set(id,cached.available);kodiPrimeProgress.done++;}
+    else pending.push(id);
+   }catch(error){pending.push(id)}
+  }));
+  renderKodiMovies();
+  let next=0;
+  await Promise.all(Array.from({length:Math.min(4,pending.length)},async()=>{
+   while(next<pending.length&&run===kodiPrimeRun){
+    const id=pending[next++];
+    try{
+     const data=await quickTmdbApi('/movie/'+encodeURIComponent(id)+'/watch/providers');
+     const providers=data?.results?.FR?.flatrate||[];
+     const available=providers.some(provider=>/^(?:amazon )?prime video$/i.test(String(provider.provider_name||'').trim()));
+     kodiPrimeAvailability.set(id,available);
+     await window.VideothequeDB.setSetting('kodiPrimeFR:'+id,{available,checkedAt:Date.now()});
+    }catch(error){kodiPrimeProgress.errors++}
+    kodiPrimeProgress.done++;
+    if(run===kodiPrimeRun){if(status)status.textContent='Vérification Prime Video : '+kodiPrimeProgress.done+' / '+kodiPrimeProgress.total+' films';renderKodiMovies()}
+   }
+  }));
+ }catch(error){if(run===kodiPrimeRun&&status)status.textContent=error.message||String(error)}
+ finally{
+  if(run===kodiPrimeRun){
+   kodiPrimeLoading=false;
+   if(status){const found=ids.filter(id=>kodiPrimeAvailability.get(id)===true).length;status.textContent=kodiPrimeProgress.errors?found+' film(s) Prime Video confirmé(s) · '+kodiPrimeProgress.errors+' disponibilité(s) non vérifiée(s) — désactive puis réactive le filtre pour réessayer':found+' film(s) inclus dans Prime Video France'}
+   renderKodiMovies();
+  }
+ }
+}
 function renderKodiMovies(){
  const root=$('#kodiPage'),query=norm(kodiPageQuery.trim());
  const compare=(a,b)=>String(a||'').localeCompare(String(b||''),'fr',{numeric:true,sensitivity:'base'});
  const movies=kodiMoviesSnapshot.filter(m=>{
   if(query&&!norm([m.title,m.year,m.tmdbId].join(' ')).includes(query))return false;
   if(kodiPageSaga&&String(kodiSagaByMovie.get(String(m.tmdbId||''))?.id||'')!==kodiPageSaga)return false;
+  if(kodiPrimeFilter&&kodiPrimeAvailability.get(String(m.tmdbId||''))!==true)return false;
   return true;
  });
  const localFor=m=>m.tmdbId?ALL.find(f=>String(f.id).replace(/^t/,'')===String(m.tmdbId)):null;
@@ -146,7 +189,7 @@ function renderKodiMovies(){
   return tmdbId?'<a class="kodi-card" href="'+esc(filmHref('t'+tmdbId,local&&local.t||m.title))+'">'+body+'</a>':'<article class="kodi-card">'+body+'<div class="meta">Identifiant TMDB absent</div></article>';
  }).join('');
  const count=movies.length,empty=kodiMoviesSnapshot.length===0;
- $('#kodiPageCount').textContent=count+' film(s) affiché(s)'+(query?' sur '+kodiMoviesSnapshot.length:'');
+ $('#kodiPageCount').textContent=count+' film(s) affiché(s)'+(query?' sur '+kodiMoviesSnapshot.length:'')+(kodiPrimeFilter&&kodiPrimeLoading?' · vérification Prime en cours':'');
  $('#kodiGrid').innerHTML=cards||(empty?'<p class="mute">Aucune liste enregistrée. Lance une comparaison avec Kodi dans Outils pour synchroniser les films présents dans sa bibliothèque.</p>':'<p class="mute">Aucun film ne correspond à cette recherche.</p>');
  observeKodiPosters();
 }
@@ -155,13 +198,14 @@ function renderKodiPage(){
  const root=$('#kodiPage');
  const date=kodiSnapshotSyncedAt?new Date(kodiSnapshotSyncedAt).toLocaleString('fr-FR'):'';
  kodiPageQuery='';kodiPageSort='title';kodiPageDirection=1;
- root.innerHTML='<div class="topbar"><button class="btn alt" id="kodiPageBack" type="button">← Ma vidéothèque</button></div><h1>Films présents sur Kodi</h1><p class="mute kodi-page-summary">Dernière synchronisation : '+(date?esc(date):'aucune')+'</p><div class="kodi-page-controls"><input id="kodiPageSearch" type="search" placeholder="Rechercher un film…" aria-label="Rechercher dans les films Kodi"><select id="kodiPageSaga" aria-label="Filtrer par saga" disabled><option value="">Chargement des sagas…</option></select><select id="kodiPageSort" aria-label="Trier les films Kodi"><option value="title">Titre</option><option value="year">Année</option><option value="rating">Note personnelle</option><option value="watched">Date de visionnage</option><option value="playcount">Nombre de lectures Kodi</option><option value="lastplayed">Dernière lecture Kodi</option></select><button class="btn alt sort-direction" id="kodiPageDirection" type="button" aria-label="Inverser l’ordre du tri">↑</button></div><p class="mute kodi-page-count" id="kodiPageCount" aria-live="polite"></p><div id="kodiGrid"></div>';
+ root.innerHTML='<div class="topbar"><button class="btn alt" id="kodiPageBack" type="button">← Ma vidéothèque</button></div><h1>Films présents sur Kodi</h1><p class="mute kodi-page-summary">Dernière synchronisation : '+(date?esc(date):'aucune')+'</p><div class="kodi-page-controls"><input id="kodiPageSearch" type="search" placeholder="Rechercher un film…" aria-label="Rechercher dans les films Kodi"><select id="kodiPageSaga" aria-label="Filtrer par saga" disabled><option value="">Chargement des sagas…</option></select><select id="kodiPageSort" aria-label="Trier les films Kodi"><option value="title">Titre</option><option value="year">Année</option><option value="rating">Note personnelle</option><option value="watched">Date de visionnage</option><option value="playcount">Nombre de lectures Kodi</option><option value="lastplayed">Dernière lecture Kodi</option></select><button class="btn alt sort-direction" id="kodiPageDirection" type="button" aria-label="Inverser l’ordre du tri">↑</button></div><p class="mute kodi-page-count" id="kodiPageCount" aria-live="polite"></p><label class="kodi-prime-filter"><input id="kodiPrimeFilter" type="checkbox"><span>Disponible dans l’abonnement Prime Video (France)</span></label><p class="mute kodi-prime-status" id="kodiPrimeStatus" role="status" aria-live="polite"></p><div id="kodiGrid"></div>';
  $('#kodiPageBack').onclick=()=>{location.hash=''};
  $('#kodiPageSearch').addEventListener('input',e=>{kodiPageQuery=e.target.value;renderKodiMovies()});
  $('#kodiPageSaga').addEventListener('change',e=>{kodiPageSaga=e.target.value;renderKodiMovies()});
  $('#kodiPageSort').addEventListener('change',e=>{kodiPageSort=e.target.value;renderKodiMovies()});
+ $('#kodiPrimeFilter').addEventListener('change',e=>{kodiPrimeFilter=e.target.checked;if(kodiPrimeFilter){renderKodiMovies();loadKodiPrimeAvailability()}else{++kodiPrimeRun;kodiPrimeLoading=false;$('#kodiPrimeStatus').textContent='';renderKodiMovies()}});
  $('#kodiPageDirection').addEventListener('click',()=>{kodiPageDirection*=-1;$('#kodiPageDirection').textContent=kodiPageDirection===1?'↑':'↓';$('#kodiPageDirection').setAttribute('aria-label',kodiPageDirection===1?'Tri croissant':'Tri décroissant');renderKodiMovies()});
- kodiPageSaga='';renderKodiSagaOptions();renderKodiMovies();loadAllKodiSagaMetadata();
+ kodiPageSaga='';kodiPrimeFilter=false;kodiPrimeLoading=false;++kodiPrimeRun;renderKodiSagaOptions();renderKodiMovies();loadAllKodiSagaMetadata();
 }
 let restoringHistoryNavigation=false,routeSequence=0;
 if('scrollRestoration' in history)history.scrollRestoration='manual';

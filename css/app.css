@@ -353,3 +353,6 @@ header .bar{width:100%;margin:0}
 
 /* Cohérence typographique de toutes les notes */
 .score-badge,.score-pill,.personal-rating,.poster .badge:not(.tmdb):not(.kodi-badge),.saga-ratings .badge:not(.tmdb){font-family:Georgia,"Times New Roman",serif}
+
+/* Filtre de disponibilité Prime Video sur la liste Kodi */
+.kodi-prime-filter{display:flex;align-items:center;gap:9px;margin:12px 0 4px;color:var(--ink);font-size:.9rem;cursor:pointer}.kodi-prime-filter input{width:18px;height:18px;flex:none;accent-color:var(--acc)}.kodi-prime-status{min-height:1.2em;margin:4px 0 10px;font-size:.8rem}
