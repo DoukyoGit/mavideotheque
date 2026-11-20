@@ -113,7 +113,7 @@ function observeKodiPosters(){
  elements.forEach(el=>kodiPosterObserver.observe(el));
 }
 async function loadKodiPrimeAvailability(){
- const run=++kodiPrimeRun,ids=[...new Set(kodiMoviesSnapshot.map(m=>String(m.tmdbId||'')).filter(id=>/^\\d+$/.test(id)))];
+ const run=++kodiPrimeRun,ids=[...new Set(kodiMoviesSnapshot.map(m=>String(m.tmdbId||'')).filter(id=>/^\d+$/.test(id)))];
  kodiPrimeLoading=true;kodiPrimeProgress={done:0,total:ids.length,errors:0};
  const status=$('#kodiPrimeStatus');
  if(status)status.textContent='Préparation du filtre Prime Video…';
