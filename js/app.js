@@ -56,7 +56,17 @@ async function getOrFetchTmdbDetail(id){
  if(local)return local;
  const key=detailCacheKey(tmdbId),cached=await window.VideothequeDB.getSetting(key);
  if(cached&&cached.record)return cached.record;
- const movie=await quickTmdbApi('/movie/'+encodeURIComponent(tmdbId),{language:'fr-FR',append_to_response:'credits,alternative_titles,external_ids,keywords,release_dates,translations,videos,images,recommendations,similar,watch/providers,reviews',include_image_language:'fr,en,null',include_video_language:'fr,en,null'});
+ const path='/movie/'+encodeURIComponent(tmdbId),params={language:'fr-FR',append_to_response:'credits,alternative_titles,external_ids,keywords,release_dates,translations,videos,images,recommendations,similar,watch/providers,reviews',include_image_language:'fr,en,null',include_video_language:'fr,en,null'};
+ let movie;
+ try{
+  movie=await quickTmdbApi(path,params);
+ }catch(error){
+  if(!/^Erreur TMDB 5\\d\\d\\./.test(error.message||''))throw error;
+  movie=await quickTmdbApi(path,{language:'fr-FR'});
+  const extras=['credits','alternative_titles','external_ids','keywords','release_dates','translations','videos','images','recommendations','similar','watch/providers','reviews'];
+  const results=await Promise.allSettled(extras.map(key=>quickTmdbApi(path,{language:'fr-FR',append_to_response:key,...(key==='images'?{include_image_language:'fr,en,null'}:{}),...(key==='videos'?{include_video_language:'fr,en,null'}:{})})));
+  results.forEach((result,index)=>{if(result.status==='fulfilled')Object.assign(movie,result.value)});
+ }
  const record=await makeTmdbRecord(movie);
  await window.VideothequeDB.setSetting(key,{savedAt:Date.now(),record});
  return record;
