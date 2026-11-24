@@ -61,7 +61,7 @@ async function getOrFetchTmdbDetail(id){
  try{
   movie=await quickTmdbApi(path,params);
  }catch(error){
-  if(!/^Erreur TMDB 5\\d\\d\\./.test(error.message||''))throw error;
+  if(!/^Erreur TMDB 5\d\d\./.test(error.message||''))throw error;
   movie=await quickTmdbApi(path,{language:'fr-FR'});
   const extras=['credits','alternative_titles','external_ids','keywords','release_dates','translations','videos','images','recommendations','similar','watch/providers','reviews'];
   const results=await Promise.allSettled(extras.map(key=>quickTmdbApi(path,{language:'fr-FR',append_to_response:key,...(key==='images'?{include_image_language:'fr,en,null'}:{}),...(key==='videos'?{include_video_language:'fr,en,null'}:{})})));
